@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-purchasing-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: order-purchasing-service
+  template:
+    metadata:
+      labels:
+        app: order-purchasing-service
+    spec:
+      containers:
+        - name: order-purchasing-service
+          image: inupa/order-purchasing-service:latest
+          ports:
+            - containerPort: 3002
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-purchasing-service
+spec:
+  selector:
+    app: order-purchasing-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3002
+  type: ClusterIP
