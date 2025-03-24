@@ -1,21 +1,40 @@
-version: '3.8'
-
 services:
+  gateway:
+    build: ./gateway  # Path to Dockerfile for gateway
+    container_name: gateway
+    networks:
+      - micronetwork
+    ports:
+      - "3000:3000"
+    environment:
+      - AUTH_SERVICE_URL=http://user-service:3001
+      - ORDER_SERVICE_URL=http://order-purchasing-service:3002
+    depends_on:
+      - user-service
+      - order-purchasing-service
+    restart: unless-stopped
+
   user-service:
-    image: user-service
+    build: ./user-service  # Path to Dockerfile for user-service
     container_name: user-service
     networks:
       - micronetwork
     ports:
       - "3001:3001"
+    environment:
+      - PORT=3001
+    restart: unless-stopped
 
   order-purchasing-service:
-    image: order-purchasing-service
+    build: ./order-purchasing-service  # Path to Dockerfile for order-purchasing-service
     container_name: order-purchasing-service
     networks:
       - micronetwork
     ports:
       - "3002:3002"
+    environment:
+      - PORT=3002
+    restart: unless-stopped
 
 networks:
   micronetwork:

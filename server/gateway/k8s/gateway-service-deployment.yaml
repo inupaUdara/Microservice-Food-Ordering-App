@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+      - name: gateway
+        image: inupa/gateway:latest
+        ports:
+        - containerPort: 3000
+        env:
+            - name: USER_SERVICE_URL
+              value: "http://user-service:80"  # Kubernetes service name for auth-service
+            - name: ORDER_SERVICE_URL
+              value: "http://order-purchasing-service:80"  # Kubernetes service name for order-service
+            - name: PORT
+              value: "3000"

@@ -9,8 +9,8 @@ app.use(cors());
 app.use(express.json());
 
 // Microservice Endpoints
-const AUTH_SERVICE = process.env.AUTH_SERVICE_URL || "http://localhost:3001";
-const ORDER_SERVICE = process.env.ORDER_SERVICE_URL || "http://localhost:3002";
+const AUTH_SERVICE = process.env.AUTH_SERVICE_URL || "http://user-service:3001";
+const ORDER_SERVICE = process.env.ORDER_SERVICE_URL || "http://order-purchasing-service:3002";
 
 // Proxy Requests to Microservices
 app.use("/users", proxy(AUTH_SERVICE));
