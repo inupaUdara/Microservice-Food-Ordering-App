@@ -3,7 +3,9 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user.model.js");
 const { JWT_SECRET } = require("../config/env.js");
 
-const registerUser = async ({ name, email, password, role }) => {
+const registerUser = async (userData) => {
+  const { email, password, role } = userData;
+
   const userExists = await User.findOne({ email });
 
   if (userExists) {
@@ -13,9 +15,37 @@ const registerUser = async ({ name, email, password, role }) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const user = new User({ name, email, password: hashedPassword, role });
+
+  if (role === "customer") {
+    if (
+      !userData.firstName ||
+      !userData.lastName ||
+      !userData.phone ||
+      !userData.address
+    ) {
+      throw new Error(
+        "Customer registration requires firstName, lastName, phone, and address"
+      );
+    }
+  } else if (role === "restaurant-admin") {
+    if (!userData.restaurantName || !userData.licenseNumber) {
+      throw new Error(
+        "Restaurant Admin registration requires restaurantName and licenseNumber"
+      );
+    }
+    userData.isApproved = false;
+  } else if (role === "delivery-person") {
+    if (!userData.vehicleType || !userData.vehicleNumber) {
+      throw new Error(
+        "Delivery Person registration requires vehicleType and vehicleNumber"
+      );
+    }
+  }
+
+  const user = new User({ ...userData, password: hashedPassword, role });
 
   await user.save();
+
   return { success: true, message: "User registered successfully" };
 };
 
@@ -39,7 +69,9 @@ const loginUser = async ({ email, password }) => {
   user.lastLogin = new Date();
   await user.save();
 
-  const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "1h" });
+  const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
+    expiresIn: "1h",
+  });
 
   return { token };
 };

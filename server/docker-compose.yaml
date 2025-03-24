@@ -7,7 +7,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - AUTH_SERVICE_URL=http://user-service:3001
+      - USER_SERVICE_URL=http://user-service:3001
       - ORDER_SERVICE_URL=http://order-purchasing-service:3002
     depends_on:
       - user-service
