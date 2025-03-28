@@ -1,6 +1,6 @@
 services:
   gateway:
-    build: ./gateway  # Path to Dockerfile for gateway
+    build: ./gateway
     container_name: gateway
     networks:
       - micronetwork
@@ -9,13 +9,16 @@ services:
     environment:
       - USER_SERVICE_URL=http://user-service:3001
       - ORDER_SERVICE_URL=http://order-purchasing-service:3002
+      - DELIVERY_SERVICE_URL=http://delivery-service:3003
     depends_on:
       - user-service
       - order-purchasing-service
+      - delivery-service
+      - rabbitmq
     restart: unless-stopped
 
   user-service:
-    build: ./user-service  # Path to Dockerfile for user-service
+    build: ./user-service
     container_name: user-service
     networks:
       - micronetwork
@@ -23,10 +26,13 @@ services:
       - "3001:3001"
     environment:
       - PORT=3001
+      - RABBITMQ_URL=amqp://rabbitmq
+    depends_on:
+      - rabbitmq
     restart: unless-stopped
 
   order-purchasing-service:
-    build: ./order-purchasing-service  # Path to Dockerfile for order-purchasing-service
+    build: ./order-purchasing-service
     container_name: order-purchasing-service
     networks:
       - micronetwork
@@ -34,6 +40,33 @@ services:
       - "3002:3002"
     environment:
       - PORT=3002
+      - RABBITMQ_URL=amqp://rabbitmq
+    depends_on:
+      - rabbitmq
+    restart: unless-stopped
+
+  delivery-service:
+    build: ./delivery-service
+    container_name: delivery-service
+    networks:
+      - micronetwork
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+      - RABBITMQ_URL=amqp://rabbitmq
+    depends_on:
+      - rabbitmq
+    restart: unless-stopped
+
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    container_name: rabbitmq
+    networks:
+      - micronetwork
+    ports:
+      - "5672:5672"  # RabbitMQ Broker Port
+      - "15672:15672" # RabbitMQ Management UI
     restart: unless-stopped
 
 networks:

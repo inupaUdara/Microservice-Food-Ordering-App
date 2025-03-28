@@ -39,12 +39,20 @@ const userSchema = new mongoose.Schema(
     licenseNumber: { type: String, trim: true },
     isApproved: { type: Boolean },
 
-    // Fields for Delivery Person
-    vehicleType: { type: String, trim: true },
-    vehicleNumber: { type: String, trim: true },
+    driverProfile: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Driver'
+    }
   },
   { timestamps: true }
 );
+
+userSchema.virtual('driver', {
+  ref: 'Driver',
+  localField: '_id',
+  foreignField: 'userId',
+  justOne: true
+});
 
 const User = mongoose.model("User", userSchema);
 

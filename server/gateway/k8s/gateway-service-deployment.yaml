@@ -22,5 +22,7 @@ spec:
               value: "http://user-service:80"  # Kubernetes service name for auth-service
             - name: ORDER_SERVICE_URL
               value: "http://order-purchasing-service:80"  # Kubernetes service name for order-service
+            - name: DELIVERY_SERVICE_URL
+              value: "http://delivery-service:80"  # Kubernetes service name for delivery-service
             - name: PORT
               value: "3000"
