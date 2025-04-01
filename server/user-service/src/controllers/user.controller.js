@@ -9,6 +9,15 @@ const getAllUsers = async (req, res, next) => {
   }
 };
 
+const getAllCustomers = async (req, res, next) => {
+  try {
+    const customers = await userService.getAllCustomers();
+    res.status(200).json({ success: true, customers });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getAllDeliveryPersons = async (req, res, next) => {
   try {
     const deliveryPersons = await userService.getAllDeliveryPersons();
@@ -20,11 +29,12 @@ const getAllDeliveryPersons = async (req, res, next) => {
 
 const getAllRestaurants = async (req, res, next) => {
   try {
-    const restaurants = await userService.getAllRestaurants();
+    const isApproved = req.query.isApproved === "true";
+    const restaurants = await userService.getAllRestaurants(isApproved);
     res.status(200).json({ success: true, restaurants });
   } catch (error) {
     next(error);
   }
 };
 
-module.exports = { getAllUsers, getAllRestaurants, getAllDeliveryPersons };
+module.exports = { getAllUsers, getAllRestaurants, getAllDeliveryPersons, getAllCustomers };

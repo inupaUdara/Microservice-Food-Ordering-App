@@ -1,0 +1,11 @@
+/* Border Radius */
+@each $property, $value in $spaces {
+    .rounded-#{$property} {
+       border-radius: #{$value} !important;
+    }
+  }
+  
+
+  .rounded-top-right-0 {
+   border-top-right-radius: 0 !important;
+  }

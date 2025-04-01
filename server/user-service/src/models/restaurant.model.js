@@ -7,7 +7,7 @@ const restaurantSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  restaruantName: {
+  restaurantName: {
     type: String,
     required: [true, "Restaurant name is required"],
     trim: true
@@ -26,12 +26,12 @@ const restaurantSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  restaruantPhone: {
+  restaurantPhone: {
     type: String,
     required: [true, "Phone number is required"],
     trim: true
   },
-  restaruantAddress: {
+  restaurantAddress: {
     street: String,
     city: String,
     state: String,

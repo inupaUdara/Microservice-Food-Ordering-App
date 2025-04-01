@@ -23,8 +23,33 @@ const getAllUsers = async (filter = {}) => {
   }));
 };
 
-const getAllRestaurants = async () => {
-  const restaurants = await Restaurant.find({}).populate(
+const getAllCustomers = async () => {
+    const customers = await User.find({ role: "customer" })
+        .select("-password") // Exclude passwords
+        .populate("driverProfile")
+        .populate("restaurantProfile");
+    
+    return customers.map((user) => ({
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        address: user.address,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+    }));
+}
+
+const getAllRestaurants = async (isApproved) => {
+  const filter = {}; // Default filter
+
+  // Apply filter only if isApproved is explicitly passed
+  if (typeof isApproved === "boolean") {
+    filter.isApproved = isApproved;
+  }
+
+  const restaurants = await Restaurant.find(filter).populate(
     "userId",
     "email firstName lastName phone"
   );
@@ -33,10 +58,12 @@ const getAllRestaurants = async () => {
     id: restaurant._id,
     restaurantName: restaurant.restaurantName,
     licenseNumber: restaurant.licenseNumber,
-    restaurantPhone: restaurant.restaruantPhone,
-    restaurantAddress: restaurant.restaruantAddress,
+    restaurantPhone: restaurant.restaurantPhone,
+    restaurantAddress: restaurant.restaurantAddress,
     location: restaurant.location,
     openingHours: restaurant.openingHours,
+    logo: restaurant.logo,
+    rating: restaurant.rating,
     isApproved: restaurant.isApproved,
     owner: restaurant.userId, // Restaurant owner's details
     createdAt: restaurant.createdAt,
@@ -62,4 +89,4 @@ const getAllDeliveryPersons = async () => {
   }));
 };
 
-module.exports = { getAllUsers, getAllRestaurants, getAllDeliveryPersons };
+module.exports = { getAllUsers, getAllRestaurants, getAllDeliveryPersons, getAllCustomers };

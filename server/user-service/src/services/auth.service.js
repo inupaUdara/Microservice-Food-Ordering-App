@@ -73,9 +73,11 @@ const registerUser = async (userData) => {
     userDataToSave.isApproved = false; // New restaurants need approval
   }
 
-  // Create and save user
   const user = new User(userDataToSave);
-  await user.save();
+  // Create and save user
+  if (role === "customer") {
+    await user.save();
+  }
 
   let driver = null;
 
@@ -100,10 +102,10 @@ const registerUser = async (userData) => {
   if (role === "restaurant-admin") {
     restaurant = new Restaurant({
       userId: user._id,
-      restaruantName: userData.restaurantName,
+      restaurantName: userData.restaurantName,
       licenseNumber: userData.licenseNumber,
-      restaruantPhone: userData.restaruantPhone,
-      restaruantAddress: userData.restaruantAddress,
+      restaurantPhone: userData.restaurantPhone,
+      restaurantAddress: userData.restaurantAddress,
       location: {
         type: "Point",
         coordinates: userData.location.coordinates,

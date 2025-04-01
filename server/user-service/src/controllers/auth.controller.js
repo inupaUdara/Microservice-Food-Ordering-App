@@ -28,5 +28,4 @@ const getProfile = async (req, res, next) => {
   }
 }
 
-
 module.exports = { signUp, signIn, getProfile };
