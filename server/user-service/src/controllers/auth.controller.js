@@ -18,4 +18,15 @@ const signIn = async (req, res, next) => {
   }
 };
 
-module.exports = { signUp, signIn };
+const getProfile = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const result = await authService.getUserProfile(userId);
+    res.status(200).json({ success: true, user: result });
+  } catch (error) {
+    next(error);
+  }
+}
+
+
+module.exports = { signUp, signIn, getProfile };

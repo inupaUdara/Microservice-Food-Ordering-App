@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user.model.js");
 const Driver = require("../models/driver.model.js");
+const Restaurant = require("../models/restaurant.model.js");
 const { JWT_SECRET } = require("../config/env.js");
 
 const registerUser = async (userData) => {
@@ -37,11 +38,18 @@ const registerUser = async (userData) => {
       break;
 
     case "delivery-person":
-      if (!userData.vehicleType || !userData.vehicleNumber || !userData.licenseNumber) {
+      if (
+        !userData.vehicleType ||
+        !userData.vehicleNumber ||
+        !userData.licenseNumber
+      ) {
         throw new Error(
           "Delivery Person registration requires vehicleType, vehicleNumber and licenseNumber"
         );
       }
+      break;
+    case "admin":
+      // Admin registration can be empty or have specific fields
       break;
 
     default:
@@ -55,7 +63,7 @@ const registerUser = async (userData) => {
     role,
     firstName: userData.firstName,
     lastName: userData.lastName,
-    phone: userData.phone
+    phone: userData.phone,
   };
 
   // Add role-specific fields
@@ -70,7 +78,7 @@ const registerUser = async (userData) => {
   await user.save();
 
   let driver = null;
-  
+
   // If role is delivery-person, create driver profile
   if (role === "delivery-person") {
     driver = new Driver({
@@ -78,18 +86,41 @@ const registerUser = async (userData) => {
       vehicleType: userData.vehicleType,
       vehicleNumber: userData.vehicleNumber,
       licenseNumber: userData.licenseNumber,
-      documents: userData.documents || []
+      documents: userData.documents || [],
     });
 
     await driver.save();
-    
+
     // Update user with driver reference
     user.driverProfile = driver._id;
     await user.save();
   }
 
-  return { 
-    success: true, 
+  // If role is restaurant-admin, create a restaurant profile
+  if (role === "restaurant-admin") {
+    restaurant = new Restaurant({
+      userId: user._id,
+      restaruantName: userData.restaurantName,
+      licenseNumber: userData.licenseNumber,
+      restaruantPhone: userData.restaruantPhone,
+      restaruantAddress: userData.restaruantAddress,
+      location: {
+        type: "Point",
+        coordinates: userData.location.coordinates,
+      },
+      openingHours: userData.openingHours,
+      isApproved: false, // Admin needs to approve the restaurant
+    });
+
+    await restaurant.save();
+
+    // Update user with restaurant reference
+    user.restaurantProfile = restaurant._id;
+    await user.save();
+  }
+
+  return {
+    success: true,
     message: "User registered successfully",
     user: {
       id: user._id,
@@ -97,22 +128,41 @@ const registerUser = async (userData) => {
       role: user.role,
       firstName: user.firstName,
       lastName: user.lastName,
-      ...(role === 'delivery-person' && { 
+      ...(role === "delivery-person" && {
         driverProfile: {
           id: driver._id,
           vehicleType: driver.vehicleType,
-          vehicleNumber: driver.vehicleNumber
-        }
-      })
-    }
+          vehicleNumber: driver.vehicleNumber,
+        },
+      }),
+      ...(role === "restaurant-admin" && {
+        restaurantProfile: {
+          id: restaurant._id,
+          name: restaurant.restaurantName,
+          restaruantPhone: userData.restaruantPhone,
+          restaruantAddress: userData.restaruantAddress,
+          location: {
+            type: "Point",
+            coordinates: userData.location.coordinates,
+          },
+          openingHours: userData.openingHours,
+          isApproved: restaurant.isApproved,
+        },
+      }),
+    },
   };
 };
 
 const loginUser = async ({ email, password }) => {
-  const user = await User.findOne({ email }).populate({
-    path: 'driverProfile',
-    model: 'Driver'
-  });
+  const user = await User.findOne({ email })
+    .populate({
+      path: "driverProfile",
+      model: "Driver",
+    })
+    .populate({
+      path: "restaurantProfile",
+      model: "Restaurant",
+    });
 
   if (!user) {
     const error = new Error("No account found with this email. Please sign up");
@@ -131,16 +181,19 @@ const loginUser = async ({ email, password }) => {
   await user.save();
 
   const token = jwt.sign(
-    { 
-      id: user._id, 
+    {
+      id: user._id,
       role: user.role,
-      driverId: user.role === 'delivery-person' ? user.driverProfile?._id : null
-    }, 
-    JWT_SECRET, 
+      driverId:
+        user.role === "delivery-person" ? user.driverProfile?._id : null,
+      restaurantId:
+        user.role === "restaurant-admin" ? user.restaurantProfile?._id : null,
+    },
+    JWT_SECRET,
     { expiresIn: "1h" }
   );
 
-  return { 
+  return {
     token,
     user: {
       id: user._id,
@@ -148,9 +201,45 @@ const loginUser = async ({ email, password }) => {
       role: user.role,
       firstName: user.firstName,
       lastName: user.lastName,
-      driverProfile: user.role === 'delivery-person' ? user.driverProfile : null
-    }
+      driverProfile:
+        user.role === "delivery-person" ? user.driverProfile : null,
+      restaurantProfile:
+        user.role === "restaurant-admin" ? user.restaurantProfile : null,
+    },
   };
 };
 
-module.exports = { registerUser, loginUser };
+const getUserProfile = async (userId) => {
+  const user = await User.findById(userId)
+    .select("-password") // Exclude password from response
+    .populate({
+      path: "driverProfile",
+      model: "Driver",
+    })
+    .populate({
+      path: "restaurantProfile",
+      model: "Restaurant",
+    });
+
+  if (!user) {
+    const error = new Error("User not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return {
+    id: user._id,
+    email: user.email,
+    role: user.role,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    phone: user.phone,
+    driverProfile: user.role === "delivery-person" ? user.driverProfile : null,
+    restaurantProfile:
+      user.role === "restaurant-admin" ? user.restaurantProfile : null,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+};
+
+module.exports = { registerUser, loginUser, getUserProfile };

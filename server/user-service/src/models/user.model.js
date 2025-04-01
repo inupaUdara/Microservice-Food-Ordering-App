@@ -34,10 +34,10 @@ const userSchema = new mongoose.Schema(
       country: String,
     },
 
-    // Fields for Restaurant Admin
-    restaurantName: { type: String, trim: true },
-    licenseNumber: { type: String, trim: true },
-    isApproved: { type: Boolean },
+    restaurantProfile: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Restaurant",
+    },
 
     driverProfile: {
       type: mongoose.Schema.Types.ObjectId,
@@ -46,6 +46,13 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+userSchema.virtual("restaurant", {
+  ref: "Restaurant",
+  localField: "_id",
+  foreignField: "userId",
+  justOne: true,
+});
 
 userSchema.virtual('driver', {
   ref: 'Driver',

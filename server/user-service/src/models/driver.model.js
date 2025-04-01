@@ -7,6 +7,10 @@ const driverSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  profilePicture: {
+    type: String,
+    default: 'https://img.pikbest.com/element_our/20220325/bg/06f6a1f5df49c.png!sw800'
+  },
   vehicleType: {
     type: String,
     enum: ['bike', 'three-wheeler'],
