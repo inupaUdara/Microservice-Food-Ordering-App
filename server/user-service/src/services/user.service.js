@@ -65,7 +65,7 @@ const getAllRestaurants = async (isApproved) => {
     logo: restaurant.logo,
     rating: restaurant.rating,
     isApproved: restaurant.isApproved,
-    owner: restaurant.userId, // Restaurant owner's details
+    owner: restaurant.userId, 
     createdAt: restaurant.createdAt,
     updatedAt: restaurant.updatedAt,
   }));
@@ -83,7 +83,7 @@ const getAllDeliveryPersons = async () => {
     vehicleNumber: driver.vehicleNumber,
     licenseNumber: driver.licenseNumber,
     documents: driver.documents,
-    owner: driver.userId, // Delivery person's details
+    owner: driver.userId, 
     createdAt: driver.createdAt,
     updatedAt: driver.updatedAt,
   }));

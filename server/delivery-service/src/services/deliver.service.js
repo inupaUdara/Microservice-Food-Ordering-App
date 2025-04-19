@@ -3,7 +3,7 @@ const Delivery = require('../models/delivery.model.js');
 const { getChannel } = require('../../lib/rabbitmq.js');
 const { calculateEstimatedTime } = require('../utils/calculate-estimate-time.util.js');
 
-async function assignDriver(orderData) {
+const assignDriver = async (orderData) => {
     try {
         console.log(`🚚 Assigning driver for order: ${orderData?.orderId}`);
 

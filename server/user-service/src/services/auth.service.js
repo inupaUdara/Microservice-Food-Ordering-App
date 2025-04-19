@@ -106,10 +106,6 @@ const registerUser = async (userData) => {
       licenseNumber: userData.licenseNumber,
       restaurantPhone: userData.restaurantPhone,
       restaurantAddress: userData.restaurantAddress,
-      location: {
-        type: "Point",
-        coordinates: userData.location.coordinates,
-      },
       openingHours: userData.openingHours,
       isApproved: false, // Admin needs to approve the restaurant
     });
@@ -143,10 +139,6 @@ const registerUser = async (userData) => {
           name: restaurant.restaurantName,
           restaruantPhone: userData.restaruantPhone,
           restaruantAddress: userData.restaruantAddress,
-          location: {
-            type: "Point",
-            coordinates: userData.location.coordinates,
-          },
           openingHours: userData.openingHours,
           isApproved: restaurant.isApproved,
         },
