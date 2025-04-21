@@ -2,11 +2,13 @@ const OrderService = require("../services/order.service.js");
 
 const createOrder = async (req, res) => {
   try {
-    const { userId } = req.user; 
-    const { products, shippingAddress } = req.body;
+    const userId = req.user.id; 
+    console.log(userId);
+    const { restaurantId, products, shippingAddress } = req.body;
 
     const order = await OrderService.createOrder(
       userId,
+      restaurantId,
       products,
       shippingAddress
     );
@@ -18,7 +20,7 @@ const createOrder = async (req, res) => {
 
 const getUserOrders = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user.id; 
     const orders = await OrderService.getUserOrders(userId);
     res.status(200).json(orders);
   } catch (error) {
@@ -28,7 +30,7 @@ const getUserOrders = async (req, res) => {
 
 const getOrderById = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user.id; 
     const { orderId } = req.params;
 
     const order = await OrderService.getOrderById(userId, orderId);
@@ -42,7 +44,7 @@ const getOrderById = async (req, res) => {
 
 const updateOrderStatus = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user.id; 
     const { orderId } = req.params;
     const { status } = req.body;
 
@@ -51,8 +53,9 @@ const updateOrderStatus = async (req, res) => {
       orderId,
       status
     );
+
     if (!updatedOrder)
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ message: "Order not founds" });
 
     res.status(200).json(updatedOrder);
   } catch (error) {
@@ -62,13 +65,13 @@ const updateOrderStatus = async (req, res) => {
 
 const cancelOrder = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user.id; 
     const { orderId } = req.params;
 
     const cancelledOrder = await OrderService.cancelOrder(userId, orderId);
     if (!cancelledOrder) {
       return res.status(400).json({
-        message: "Order cannot be cancelled after shipping",
+        message: "Order cannot be cancelled after out for delivery or delivered",
       });
     }
 

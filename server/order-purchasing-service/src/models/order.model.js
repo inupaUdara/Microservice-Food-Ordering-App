@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  restaurantId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: "Restaurant" },
   products: [
     {
       productId: { type: mongoose.Schema.Types.ObjectId, required: true },
@@ -12,7 +13,7 @@ const orderSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   status: {
     type: String,
-    enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
+    enum: ["pending", "confirmed","preparing", "out_for_delivery", "delivered", "cancelled"],
     default: "pending"
   },
   shippingAddress: {

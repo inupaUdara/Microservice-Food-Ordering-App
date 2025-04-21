@@ -1,11 +1,12 @@
 const { getChannel } = require("../../lib/rabbitmq.js");
 const Order = require("../models/order.model.js");
 
-const createOrder = async (userId, products, shippingAddress) => {
+const createOrder = async (userId,restaurantId, products, shippingAddress) => {
   const totalAmount = products.reduce((sum, product) => sum + product.price * product.quantity, 0);
   
   const order = new Order({ 
     userId, 
+    restaurantId,
     products, 
     totalAmount, 
     shippingAddress,
@@ -15,18 +16,18 @@ const createOrder = async (userId, products, shippingAddress) => {
   const savedOrder = await order.save();
   
   // Publish order created event
-  const channel = getChannel();
-  channel.publish(
-    'order_events',
-    'order.ready_for_delivery',
-    Buffer.from(JSON.stringify({
-      orderId: savedOrder._id,
-      userId: savedOrder.userId,
-      totalAmount: savedOrder.totalAmount,
-      createdAt: savedOrder.createdAt
-    })),
-    { persistent: true }
-  );
+  // const channel = getChannel();
+  // channel.publish(
+  //   'order_events',
+  //   'order.ready_for_delivery',
+  //   Buffer.from(JSON.stringify({
+  //     orderId: savedOrder._id,
+  //     userId: savedOrder.userId,
+  //     totalAmount: savedOrder.totalAmount,
+  //     createdAt: savedOrder.createdAt
+  //   })),
+  //   { persistent: true }
+  // );
 
   return savedOrder;
 
@@ -50,7 +51,7 @@ const updateOrderStatus = async (userId, orderId, status) => {
 
 const cancelOrder = async (userId, orderId) => {
   return await Order.findOneAndUpdate(
-    { _id: orderId, userId, status: { $nin: ["shipped", "delivered"] } },
+    { _id: orderId, userId, status: { $nin: ["out_for_delivery", "delivered"] } },
     { status: "cancelled", updatedAt: Date.now() },
     { new: true }
   );
