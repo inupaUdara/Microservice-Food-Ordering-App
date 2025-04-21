@@ -2,7 +2,8 @@ const menuService = require("../services/menu.service");
 
 const createMenu = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user.id;
+    console.log("User ID:", userId);
     const menuData = { ...req.body, userId };
     const menu = await menuService.createMenu(menuData);
     res.status(201).json(menu);
@@ -13,7 +14,8 @@ const createMenu = async (req, res) => {
 
 const getAllMenus = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user.id;
+    console.log("req.user:", req.user);
     const menus = await menuService.getAllMenus(userId);
     res.json(menus);
   } catch (error) {
@@ -23,7 +25,7 @@ const getAllMenus = async (req, res) => {
 
 const getMenuById = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user.id;
     const menu = await menuService.getMenuById(userId, req.params.menuId);
     if (!menu) return res.status(404).json({ error: "Menu not found" });
     res.json(menu);
@@ -34,7 +36,7 @@ const getMenuById = async (req, res) => {
 
 const updateMenu = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user.id;
     const menu = await menuService.updateMenu(
       req.params.menuId,
       userId,
@@ -49,7 +51,7 @@ const updateMenu = async (req, res) => {
 
 const deleteMenu = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user.id;
     const menu = await menuService.deleteMenu(req.params.menuId, userId);
     if (!menu) return res.status(404).json({ error: "Menu not found" });
     res.json(menu);
@@ -60,7 +62,7 @@ const deleteMenu = async (req, res) => {
 
 const getMenuByCategory = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user.id;
     const menus = await menuService.getMenuByCategory(
       userId,
       req.params.category

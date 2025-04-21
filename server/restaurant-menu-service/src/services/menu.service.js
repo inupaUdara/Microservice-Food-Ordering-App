@@ -1,4 +1,5 @@
 const Menu = require("../models/menu.model.js");
+const mongoose = require("mongoose");
 
 const createMenu = async (menuData) => {
   try {
@@ -11,7 +12,8 @@ const createMenu = async (menuData) => {
 
 const getAllMenus = async (userId) => {
   try {
-    const menus = await Menu.find({ userId }).sort({ createdAt: -1 });
+    const objectId = new mongoose.Types.ObjectId(userId);
+    const menus = await Menu.find({ userId: objectId }).sort({ createdAt: -1 });
     return menus;
   } catch (error) {
     throw new Error(error.message);
