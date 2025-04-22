@@ -38,15 +38,6 @@ const restaurantSchema = new mongoose.Schema({
     zipCode: String,
     country: String
   },
-  location: {
-    type: {
-      type: String,
-      enum: ['Point'],
-    },
-    coordinates: {
-      type: [Number], // [longitude, latitude]
-    }
-  },
   openingHours: [
     {
       day: { type: String, required: true },

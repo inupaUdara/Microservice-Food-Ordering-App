@@ -1,11 +1,12 @@
 const express = require("express");
-const { createOrder, getOrderById, getUserOrders, updateOrderStatus, cancelOrder } = require("../controllers/order.controller.js");
-const authenticateToken = require("../middlewares/auth.middleware.js");
+const { createOrder, getOrderById, getUserOrders, updateOrderStatus, cancelOrder, getRestaurantOrders } = require("../controllers/order.controller.js");
+const {authenticateToken, authorizeRoles, authenticateInternalService} = require("../middlewares/auth.middleware.js");
 
 const router = express.Router();
 
 router.post("/", authenticateToken, createOrder);
 router.get("/my-orders", authenticateToken, getUserOrders);
+router.get("/restaurant",authenticateToken, authorizeRoles("restaurant-admin"), getRestaurantOrders);
 router.get("/:orderId", authenticateToken, getOrderById);
 router.patch("/:orderId", authenticateToken, updateOrderStatus);
 router.delete("/:orderId", authenticateToken, cancelOrder);

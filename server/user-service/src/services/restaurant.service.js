@@ -34,7 +34,6 @@ const getRestaurantById = async (restaurantId) => {
     licenseNumber: restaurant.licenseNumber,
     restaurantPhone: restaurant.restaurantPhone,
     restaurantAddress: restaurant.restaurantAddress,
-    location: restaurant.location,
     openingHours: restaurant.openingHours,
     logo: restaurant.logo,
     rating: restaurant.rating,
@@ -45,5 +44,27 @@ const getRestaurantById = async (restaurantId) => {
   };
 };
 
+const getBatchRestaurants = async (ids) => {
+  if (!ids || !Array.isArray(ids)) {
+    throw new Error('Array of restaurant IDs is required');
+  }
 
-module.exports = { approveRestaurant, getRestaurantById };
+  // Fetch restaurants directly using Mongoose model
+  const restaurants = await Restaurant.find(
+    { _id: { $in: ids } },
+    'restaurantName logo restaurantAddress restaurantPhone rating'
+  ).lean();
+
+  // Transform data
+  return restaurants.map(r => ({
+    id: r._id,
+    restaurantName: r.restaurantName,
+    logo: r.logo,
+    restaurantAddress: r.restaurantAddress,
+    restaurantPhone: r.restaurantPhone,
+    rating: r.rating
+  }));
+};
+
+
+module.exports = { approveRestaurant, getRestaurantById, getBatchRestaurants };
