@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 
 const menuSchema = new mongoose.Schema(
   {
-    userId: {
+    restaurantId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Restaurant",
       required: true,
     },
     name: {
@@ -78,4 +78,4 @@ const menuSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Menu", menuSchema);
+module.exports = mongoose.models.Menu || mongoose.model("Menu", menuSchema);
