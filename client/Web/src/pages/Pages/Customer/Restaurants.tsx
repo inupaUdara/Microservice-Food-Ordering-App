@@ -4,27 +4,45 @@ import IconHeart from '../../../components/Icon/IconHeart';
 import { useDispatch } from 'react-redux';
 import { setPageTitle } from '../../../store/themeConfigSlice';
 import { getAllRestaurants } from '../../../services/restaurant/restaurant';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import Loader from '../../Components/Loader';
 
 const Restaurants = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     useEffect(() => {
         dispatch(setPageTitle('Restaurants'));
     });
 
     const [restaurants, setRestaurants] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleRestaurantClick = (id: string) => {
+        navigate(`/restaurants/${id}`);
+    };
 
     useEffect(() => {
         const fetchRestaurants = async () => {
             try {
+                setLoading(true);
                 const data = await getAllRestaurants();
                 setRestaurants(data);
+                setError(null);
             } catch (error) {
                 console.error('Error fetching restaurants:', error);
+                setError('Failed to load restaurants. Please try again later.');
+            } finally {
+                setLoading(false);
             }
         };
         fetchRestaurants();
     }, []);
+
+    if (loading) {
+        return <Loader />;
+    }
+
     return (
         <div>
             <ul className="flex space-x-2 rtl:space-x-reverse">
@@ -37,14 +55,22 @@ const Restaurants = () => {
                     <span>Restaurants</span>
                 </li>
             </ul>
+
             <div className="mb-5 flex flex-wrap gap-6 pt-5">
-                {restaurants.length === 0 ? (
-                    <div>Loading restaurants...</div>
+                {error ? (
+                    <div className="w-full text-center text-red-500 py-10">
+                        {error}
+                    </div>
+                ) : restaurants.length === 0 ? (
+                    <div className="w-full text-center text-gray-500 py-10">
+                        No restaurants found.
+                    </div>
                 ) : (
                     restaurants.map((restaurant: any) => (
                         <div
                             key={restaurant.id}
                             className="max-w-[22rem] w-full bg-white shadow rounded border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a]"
+                            onClick={() => handleRestaurantClick(restaurant.id)}
                         >
                             <div className="py-7 px-6">
                                 {/* Logo */}

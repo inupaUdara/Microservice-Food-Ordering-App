@@ -483,6 +483,22 @@ const Header = () => {
                         <button type="button" className="nav-link">
                             <div className="flex items-center">
                                 <IconMenuDashboard className="shrink-0" />
+                                <span className="px-1">{t('Orders')}</span>
+                            </div>
+                            <div className="right_arrow">
+                                <IconCaretDown />
+                            </div>
+                        </button>
+                        <ul className="sub-menu">
+                            <li>
+                                <NavLink to="/ongoing-orders">{t('Ongoing Orders')}</NavLink>
+                            </li>
+                        </ul>
+                    </li>
+                    <li className="menu nav-item relative">
+                        <button type="button" className="nav-link">
+                            <div className="flex items-center">
+                                <IconMenuDashboard className="shrink-0" />
                                 <span className="px-1">{t('dashboard')}</span>
                             </div>
                             <div className="right_arrow">
@@ -964,7 +980,7 @@ const Header = () => {
                             </li>
                         </ul>
                     </li>
-                    <li className="menu nav-item relative">
+                    {/* <li className="menu nav-item relative">
                         <button type="button" className="nav-link">
                             <div className="flex items-center">
                                 <IconMenuMore className="shrink-0" />
@@ -993,7 +1009,7 @@ const Header = () => {
                                 </NavLink>
                             </li>
                         </ul>
-                    </li>
+                    </li> */}
                 </ul>
             </div>
         </header>

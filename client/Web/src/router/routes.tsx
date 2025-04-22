@@ -6,6 +6,9 @@ import RegisterRestaurant from '../pages/Authentication/RegisterRestaurant';
 import RegisterDeliveryPerson from '../pages/Authentication/RegisterDeliveryPerson';
 import Menus from '../pages/Pages/RestaurantAdmin/Menus';
 import Orders from '../pages/Pages/DeliveryPerson/Orders';
+import OngoingOrders from '../pages/Pages/Customer/OngoingOrders';
+import RestaurantDetails from '../pages/Pages/Customer/RestaurantDetails';
+import OrderDetails from '../pages/Pages/Customer/OrderDetails';
 const Restaurants = lazy(() => import('../pages/Pages/Customer/Restaurants'));
 const Index = lazy(() => import('../pages/Index'));
 const Todolist = lazy(() => import('../pages/Apps/Todolist'));
@@ -371,6 +374,19 @@ const routes = [
             {
                 path: '/restaurants',
                 element: <Restaurants />,
+            },
+            // In your router configuration (e.g., AppRouter.tsx)
+            {
+                path: '/restaurants/:id',
+                element: <RestaurantDetails />, // You'll need to create this component
+            },
+            {
+                path: '/ongoing-orders',
+                element: <OngoingOrders />,
+            },
+            {
+                path: '/ongoing-orders/:id',
+                element: <OrderDetails />,
             },
 
             //restaurant admin page
