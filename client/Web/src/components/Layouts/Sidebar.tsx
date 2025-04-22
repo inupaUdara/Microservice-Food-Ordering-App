@@ -94,6 +94,7 @@ const Sidebar = () => {
                     <PerfectScrollbar className="h-[calc(100vh-90px)] relative">
                         <ul className="relative font-semibold space-y-0.5 p-4 py-3">
                             {currentUser && currentUser.role === 'customer' && (
+                                <>
                                 <li className="menu nav-item">
                                     <li className="nav-item">
                                         <NavLink to="/restaurants" className="group">
@@ -104,6 +105,17 @@ const Sidebar = () => {
                                         </NavLink>
                                     </li>
                                 </li>
+                                <li className="menu nav-item">
+                                    <li className="nav-item">
+                                        <NavLink to="/ongoing-orders" className="group">
+                                            <div className="flex items-center">
+                                                <IconMenuDashboard className="group-hover:!text-primary shrink-0" />
+                                                <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Orders')}</span>
+                                            </div>
+                                        </NavLink>
+                                    </li>
+                                </li>
+                                </>
                             )}
                             {currentUser && currentUser.role === 'restaurant-admin' && (
                                 <li className="menu nav-item">
