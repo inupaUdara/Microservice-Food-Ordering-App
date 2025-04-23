@@ -1,7 +1,6 @@
 import { lazy } from 'react';
 import PrivateRoutes from './privateRoutes';
 import Landing from '../pages/Landing';
-import path from 'path';
 import RegisterRestaurant from '../pages/Authentication/RegisterRestaurant';
 import RegisterDeliveryPerson from '../pages/Authentication/RegisterDeliveryPerson';
 import Menus from '../pages/Pages/RestaurantAdmin/Menus';
@@ -9,6 +8,11 @@ import Orders from '../pages/Pages/DeliveryPerson/Orders';
 import OngoingOrders from '../pages/Pages/Customer/OngoingOrders';
 import RestaurantDetails from '../pages/Pages/Customer/RestaurantDetails';
 import OrderDetails from '../pages/Pages/Customer/OrderDetails';
+import UnapprovedRestaurants from '../pages/Pages/SuperAdmin/Restaurant/UnapprovedRestaurants';
+import AllRestaurants from '../pages/Pages/SuperAdmin/Restaurant/AllRestaurants';
+import ApprovedRestaurants from '../pages/Pages/SuperAdmin/Restaurant/ApprovedRestaurant';
+import AllCustomers from '../pages/Pages/SuperAdmin/Customers/AllCustomers';
+import AllDrivers from '../pages/Pages/SuperAdmin/Drivers/AllDrivers';
 const Restaurants = lazy(() => import('../pages/Pages/Customer/Restaurants'));
 const Index = lazy(() => import('../pages/Index'));
 const Todolist = lazy(() => import('../pages/Apps/Todolist'));
@@ -399,6 +403,24 @@ const routes = [
             {
                 path: '/orders',
                 element: <Orders />,
+            },
+
+            // super admin
+            {
+                path: '/unapproved-restaurants',
+                element: <UnapprovedRestaurants />,
+            },
+            {
+                path: '/approved-restaurants',
+                element: <ApprovedRestaurants />,
+            },
+            {
+                path: '/customers',
+                element: <AllCustomers />,
+            },
+            {
+                path: '/drivers',
+                element: <AllDrivers />,
             },
         ],
     },

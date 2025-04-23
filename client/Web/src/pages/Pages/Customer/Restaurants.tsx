@@ -56,7 +56,7 @@ const Restaurants = () => {
                 </li>
             </ul>
 
-            <div className="mb-5 flex flex-wrap gap-6 pt-5">
+            <div className="mb-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-5">
                 {error ? (
                     <div className="w-full text-center text-red-500 py-10">
                         {error}
@@ -69,7 +69,7 @@ const Restaurants = () => {
                     restaurants.map((restaurant: any) => (
                         <div
                             key={restaurant.id}
-                            className="max-w-[22rem] w-full bg-white shadow rounded border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a]"
+                            className="w-full bg-white shadow rounded border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a]"
                             onClick={() => handleRestaurantClick(restaurant.id)}
                         >
                             <div className="py-7 px-6">
