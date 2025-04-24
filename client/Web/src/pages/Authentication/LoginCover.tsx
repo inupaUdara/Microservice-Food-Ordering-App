@@ -66,14 +66,24 @@ const LoginCover = () => {
             const data = response.data;
             localStorage.setItem('token', data.token);
             console.log('Login response:', data.user);
-            dispatch(signInSuccess(data.user));
+
             if (data.user.role === 'customer') {
+                dispatch(signInSuccess(data.user));
                 navigate('/restaurants');
             } else if (data.user.role === 'delivery-person') {
+                dispatch(signInSuccess(data.user));
                 navigate('/orders');
             } else if (data.user.role === 'restaurant-admin') {
+                if (data.user.restaurantProfile.isApproved === false) {
+                    const message = 'Your restaurant is not approved yet. Please contact the admin.';
+                    showMessage('Your restaurant is not approved yet. Please contact the admin.', 'error');
+                    dispatch(signInFailure(message));
+                    return;
+                }
                 navigate('/menus');
-            } else {
+                dispatch(signInSuccess(data.user));
+            } else if (data.user.role === 'admin') {
+                dispatch(signInSuccess(data.user));
                 navigate('/dashboard');
             }
         } catch (error: any) {
