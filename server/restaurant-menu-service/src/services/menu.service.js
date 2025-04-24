@@ -89,6 +89,19 @@ const getMenuByCategory = async (restaurantId, category) => {
   }
 };
 
+const getAllMenuDetailsByRestaurantId = async (restaurantId) => {
+  try {
+    const objectId = new mongoose.Types.ObjectId(restaurantId);
+    const menus = await Menu.find({ restaurantId: objectId }).sort({
+      createdAt: -1,
+    });
+
+    return menus;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 module.exports = {
   createMenu,
   getAllMenus,
@@ -96,4 +109,5 @@ module.exports = {
   updateMenu,
   deleteMenu,
   getMenuByCategory,
+  getAllMenuDetailsByRestaurantId,
 };
