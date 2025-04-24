@@ -1,6 +1,8 @@
+import DriverDashboard from "./Location/DriverDashboard"
+
 const Orders = () => {
   return (
-    <div>Orders</div>
+    <div><DriverDashboard/></div>
   )
 }
 
