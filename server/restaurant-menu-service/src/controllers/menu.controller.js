@@ -73,7 +73,7 @@ const getMenuByCategory = async (req, res) => {
 
 const getAllMenuDetailsByRestaurantId = async (req, res) => {
   try {
-    const restaurantId = req.user.restaurantId;
+    const restaurantId = req.params.restaurantId;
     const menus = await menuService.getAllMenuDetailsByRestaurantId(
       restaurantId
     );

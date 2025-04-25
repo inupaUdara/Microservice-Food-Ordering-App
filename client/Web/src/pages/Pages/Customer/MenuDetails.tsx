@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getAllMenuDetailsByRestaurantId } from '../../../services/restaurant/restaurant';
 import { useParams } from 'react-router-dom';
+import AddToCartButton from './Order/AddToCartButton';
 
 const MenuDetails = () => {
     const { id } = useParams();
@@ -69,6 +70,7 @@ const MenuDetails = () => {
                                     </ul>
                                 </div>
                             )}
+                             <AddToCartButton restaurantId={id!} item={item} />
                         </div>
                     ))}
                 </div>

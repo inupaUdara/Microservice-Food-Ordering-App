@@ -1,8 +1,7 @@
-// components/OrderDetails.tsx
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getOrderById } from '../../../services/order/order';
-import Loader from '../../Components/Loader';
+import { getOrderById } from '../../../../services/order/order';
+import Loader from '../../../Components/Loader';
 
 const OrderDetails = () => {
     const { id } = useParams();
