@@ -6,7 +6,7 @@ const path = require('path');
 // Set up multer to store files in the 'uploads/' folder
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    cb(null, 'src/uploads/');
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname));  // Ensure unique filenames
