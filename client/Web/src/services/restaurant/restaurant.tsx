@@ -18,9 +18,9 @@ export const getRestaurantById = async (id: any) => {
 
 export const createMenu = async (id: any, data: any) => {
     const response = await api.post('/menu/api/v1/menu', data, {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
+        // headers: {
+        //     'Content-Type': 'multipart/form-data',
+        // },
     });
     return response.data;
 };
