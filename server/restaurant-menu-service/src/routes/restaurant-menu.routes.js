@@ -6,6 +6,7 @@ const {
   updateMenu,
   deleteMenu,
   getMenuByCategory,
+  getAllMenuDetailsByRestaurantId,
 } = require("../controllers/menu.controller.js");
 const authenticateToken = require("../middlewares/auth.middleware.js");
 
@@ -17,5 +18,10 @@ router.get("/:menuId", authenticateToken, getMenuById);
 router.patch("/:menuId", authenticateToken, updateMenu);
 router.delete("/:menuId", authenticateToken, deleteMenu);
 router.get("/category/:category", authenticateToken, getMenuByCategory);
+router.get(
+  "/restaurant/:restaurantId",
+  authenticateToken,
+  getAllMenuDetailsByRestaurantId
+);
 
 module.exports = router;
