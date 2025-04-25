@@ -1,24 +1,22 @@
 import { useEffect, useState } from 'react';
-import { getAllMenuItems } from '../../../services/restaurant/restaurant';
+import { getAllMenuDetailsByRestaurantId } from '../../../services/restaurant/restaurant';
 import { useParams } from 'react-router-dom';
 
 const MenuDetails = () => {
-    const { id } = useParams(); // restaurant ID
+    const { id } = useParams();
     const [menuItems, setMenuItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        console.log('Restaurant ID from useParams:', id); // Debug
         const fetchMenuItems = async () => {
             try {
-                const data = await getAllMenuItems();
+                const data = await getAllMenuDetailsByRestaurantId(id);
                 console.log('Raw menu items:', data);
-
-                const filteredItems = data.filter((item: any) => item.restaurantId === id);
-
-                setMenuItems(filteredItems || []);
-            } catch (error) {
-                setError('Error fetching menu items');
+                setMenuItems(data || []);
+            } catch (error: any) {
+                setError(error.message || 'Error fetching menu items');
                 console.error('Error fetching menu items:', error);
             } finally {
                 setLoading(false);
