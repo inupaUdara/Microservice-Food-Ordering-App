@@ -1,5 +1,6 @@
 const express = require("express");
 const proxy = require("express-http-proxy");
+const { createProxyMiddleware } = require("http-proxy-middleware");
 const cors = require("cors");
 
 require("dotenv").config();
@@ -18,11 +19,18 @@ const RESTAURANT_MENU_SERVICE =
   process.env.RESTAURANT_MENU_SERVICE_URL ||
   "http://restaurant-menu-service:3004";
 
+const UPLOAD_SERVICE =
+  process.env.UPLOAD_SERVICE_URL || "http://upload-service:5000";
+
 // Proxy Requests to Microservices
 app.use("/users", proxy(USER_SERVICE));
 app.use("/orders", proxy(ORDER_SERVICE));
 app.use("/deliveries", proxy(DELIVERY_SERVICE));
 app.use("/menu", proxy(RESTAURANT_MENU_SERVICE));
+app.use(
+  "/upload",
+  createProxyMiddleware({ target: UPLOAD_SERVICE, changeOrigin: true })
+);
 
 app.get("/", (req, res) =>
   res.json({ message: "API Gateway Running with express-http-proxy" })
