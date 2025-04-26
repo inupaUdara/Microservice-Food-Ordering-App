@@ -3,7 +3,9 @@ const { createFeedback, getAllFeedback, getFeedbackById, updateFeedbackById, del
 // Create new feedback entry
 const createFeedbackHandler = async (req, res) => {
   const { name, email, rating, message, orderId, status, foodItemId, location, userId, anonymous } = req.body;
-  const images = req.files ? req.files.map(file => file.path) : [];  // If images are uploaded
+
+  // FIX: Save only filenames, not full paths
+  const images = req.files ? req.files.map(file => file.filename) : [];
 
   try {
     const feedback = await createFeedback(name, email, rating, message, images, orderId, status, foodItemId, location, userId, anonymous);
@@ -45,7 +47,9 @@ const getFeedbackByIdHandler = async (req, res) => {
 const updateFeedbackByIdHandler = async (req, res) => {
   const { id } = req.params;
   const updateData = req.body;
-  const images = req.files ? req.files.map(file => file.path) : []; // Handle images
+
+  // FIX: Save only filenames, not full paths
+  const images = req.files ? req.files.map(file => file.filename) : [];
 
   try {
     const updatedFeedback = await updateFeedbackById(id, updateData, images);
