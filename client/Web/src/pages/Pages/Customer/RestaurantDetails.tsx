@@ -5,6 +5,7 @@ import { getRestaurantById } from '../../../services/restaurant/restaurant';
 import Loader from '../../Components/Loader';
 import { useDispatch } from 'react-redux';
 import { setPageTitle } from '../../../store/themeConfigSlice';
+import MenuDetails from './MenuDetails';
 
 const RestaurantDetails = () => {
     const dispatch = useDispatch();
@@ -120,6 +121,7 @@ const RestaurantDetails = () => {
                     </div>
                 </div>
             </div>
+            <MenuDetails restaurant={restaurant} />
         </div>
     );
 };

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { setPageTitle } from '../../../store/themeConfigSlice';
+import { setPageTitle } from '../../../../store/themeConfigSlice';
 import { Link, useNavigate } from 'react-router-dom';
-import { getAllUserOrders } from '../../../services/order/order';
-import Loader from '../../Components/Loader';
+import { getAllUserOrders } from '../../../../services/order/order';
+import Loader from '../../../Components/Loader';
 
 const OngoingOrders = () => {
     const dispatch = useDispatch();

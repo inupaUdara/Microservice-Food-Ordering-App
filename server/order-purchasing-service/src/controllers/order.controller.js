@@ -1,16 +1,33 @@
+const { default: axios } = require("axios");
 const OrderService = require("../services/order.service.js");
 
 const createOrder = async (req, res, next) => {
   try {
     const userId = req.user.id;
     console.log(userId);
-    const { restaurantId, products, shippingAddress } = req.body;
+    const {
+      restaurantId,
+      products,
+      shippingAddress,
+      paymentId,
+      totalAmount,
+      deliveryFee,
+      grandTotal,
+      customerEmail,
+      customerPhone,
+    } = req.body;
 
     const order = await OrderService.createOrder(
       userId,
       restaurantId,
       products,
-      shippingAddress
+      shippingAddress,
+      paymentId,
+      totalAmount,
+      grandTotal,
+      deliveryFee,
+      customerEmail,
+      customerPhone
     );
     res.status(201).json(order);
   } catch (error) {
@@ -104,6 +121,28 @@ const cancelOrder = async (req, res, next) => {
   }
 };
 
+const getGeoCode = async (req, res, next) => {
+  try {
+    const { address } = req.query;
+    console.log("address", address);
+    if (!address) {
+      return res.status(400).json({ error: "Address is required" });
+    }
+    const response = await axios.get(
+      "https://maps.googleapis.com/maps/api/geocode/json",
+      {
+        params: {
+          address,
+          key: process.env.GOOGLE_MAPS_API_KEY,
+        },
+      }
+    );
+    res.json(response.data);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createOrder,
   getRestaurantOrders,
@@ -111,4 +150,5 @@ module.exports = {
   getOrderById,
   updateOrderStatus,
   cancelOrder,
+  getGeoCode,
 };

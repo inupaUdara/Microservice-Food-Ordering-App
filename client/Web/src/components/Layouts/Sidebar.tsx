@@ -31,6 +31,10 @@ import IconMenuUsers from '../Icon/Menu/IconMenuUsers';
 import IconMenuPages from '../Icon/Menu/IconMenuPages';
 import IconMenuAuthentication from '../Icon/Menu/IconMenuAuthentication';
 import IconMenuDocumentation from '../Icon/Menu/IconMenuDocumentation';
+import IconMenu from '../Icon/IconMenu';
+import IconHome from '../Icon/IconHome';
+import IconUsers from '../Icon/IconUsers';
+import IconWheel from '../Icon/IconWheel';
 
 const Sidebar = () => {
     const [currentMenu, setCurrentMenu] = useState<string>('');
@@ -95,26 +99,26 @@ const Sidebar = () => {
                         <ul className="relative font-semibold space-y-0.5 p-4 py-3">
                             {currentUser && currentUser.role === 'customer' && (
                                 <>
-                                <li className="menu nav-item">
-                                    <li className="nav-item">
-                                        <NavLink to="/restaurants" className="group">
-                                            <div className="flex items-center">
-                                                <IconMenuDashboard className="group-hover:!text-primary shrink-0" />
-                                                <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Restaurants')}</span>
-                                            </div>
-                                        </NavLink>
+                                    <li className="menu nav-item">
+                                        <li className="nav-item">
+                                            <NavLink to="/restaurants" className="group">
+                                                <div className="flex items-center">
+                                                    <IconMenuDashboard className="group-hover:!text-primary shrink-0" />
+                                                    <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Restaurants')}</span>
+                                                </div>
+                                            </NavLink>
+                                        </li>
                                     </li>
-                                </li>
-                                <li className="menu nav-item">
-                                    <li className="nav-item">
-                                        <NavLink to="/ongoing-orders" className="group">
-                                            <div className="flex items-center">
-                                                <IconMenuDashboard className="group-hover:!text-primary shrink-0" />
-                                                <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Orders')}</span>
-                                            </div>
-                                        </NavLink>
+                                    <li className="menu nav-item">
+                                        <li className="nav-item">
+                                            <NavLink to="/ongoing-orders" className="group">
+                                                <div className="flex items-center">
+                                                    <IconMenuDashboard className="group-hover:!text-primary shrink-0" />
+                                                    <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Orders')}</span>
+                                                </div>
+                                            </NavLink>
+                                        </li>
                                     </li>
-                                </li>
                                 </>
                             )}
                             {currentUser && currentUser.role === 'restaurant-admin' && (
@@ -130,26 +134,72 @@ const Sidebar = () => {
                                 </li>
                             )}
                             {currentUser && currentUser.role === 'delivery-person' && (
-                                <li className="menu nav-item">
+                                <>
+                                    <li className="menu nav-item">
+                                        <li className="nav-item">
+                                            <NavLink to="/orders" className="group">
+                                                <div className="flex items-center">
+                                                    <IconMenuDashboard className="group-hover:!text-primary shrink-0" />
+                                                    <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Orders')}</span>
+                                                </div>
+                                            </NavLink>
+                                        </li>
+                                    </li>
+                                </>
+                            )}
+
+                            {currentUser && currentUser.role === 'admin' && (
+                                <>
                                     <li className="nav-item">
-                                        <NavLink to="/orders" className="group">
+                                        <NavLink to="/dashboard" className="group">
                                             <div className="flex items-center">
                                                 <IconMenuDashboard className="group-hover:!text-primary shrink-0" />
-                                                <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Orders')}</span>
+                                                <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('dashboard')}</span>
                                             </div>
                                         </NavLink>
                                     </li>
-                                </li>
-                            )}
 
-                            <li className="nav-item">
-                                <NavLink to="/dashboard" className="group">
-                                    <div className="flex items-center">
-                                        <IconMenuDashboard className="group-hover:!text-primary shrink-0" />
-                                        <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('dashboard')}</span>
-                                    </div>
-                                </NavLink>
-                            </li>
+                                    <li className="menu nav-item">
+                                        <button type="button" className={`${currentMenu === 'restaurant' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('restaurant')}>
+                                            <div className="flex items-center">
+                                                <IconHome className="group-hover:!text-primary shrink-0" />
+                                                <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Restaurant')}</span>
+                                            </div>
+
+                                            <div className={currentMenu !== 'restaurant' ? 'rtl:rotate-90 -rotate-90' : ''}>
+                                                <IconCaretDown />
+                                            </div>
+                                        </button>
+
+                                        <AnimateHeight duration={300} height={currentMenu === 'restaurant' ? 'auto' : 0}>
+                                            <ul className="sub-menu text-gray-500">
+                                                <li>
+                                                    <NavLink to="/unapproved-restaurants">{t('Unapproved')}</NavLink>
+                                                </li>
+                                                <li>
+                                                    <NavLink to="/approved-restaurants">{t('Approved')}</NavLink>
+                                                </li>
+                                            </ul>
+                                        </AnimateHeight>
+                                    </li>
+                                    <li className="nav-item">
+                                        <NavLink to="/customers" className="group">
+                                            <div className="flex items-center">
+                                                <IconUsers className="group-hover:!text-primary shrink-0" />
+                                                <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Customers')}</span>
+                                            </div>
+                                        </NavLink>
+                                    </li>
+                                    <li className="nav-item">
+                                        <NavLink to="/drivers" className="group">
+                                            <div className="flex items-center">
+                                                <IconWheel className="group-hover:!text-primary shrink-0" />
+                                                <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Drivers')}</span>
+                                            </div>
+                                        </NavLink>
+                                    </li>
+                                </>
+                            )}
 
                             <h2 className="py-3 px-7 flex items-center uppercase font-extrabold bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08] -mx-4 mb-1">
                                 <IconMinus className="w-4 h-5 flex-none hidden" />

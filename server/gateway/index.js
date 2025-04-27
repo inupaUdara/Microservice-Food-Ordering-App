@@ -17,12 +17,18 @@ const DELIVERY_SERVICE =
 const RESTAURANT_MENU_SERVICE =
   process.env.RESTAURANT_MENU_SERVICE_URL ||
   "http://restaurant-menu-service:3004";
+const NOTIFICATION_SERVICE =
+  process.env.NOTIFICATION_SERVICE_URL || "http://notification-service:5001";
+const PAYMENT_SERVICE =
+  process.env.PAYMENT_SERVICE_URL || "http://payment-service:5002";
 
 // Proxy Requests to Microservices
 app.use("/users", proxy(USER_SERVICE));
 app.use("/orders", proxy(ORDER_SERVICE));
 app.use("/deliveries", proxy(DELIVERY_SERVICE));
 app.use("/menu", proxy(RESTAURANT_MENU_SERVICE));
+app.use("/notifications-service", proxy(NOTIFICATION_SERVICE));
+app.use("/payments-service", proxy(PAYMENT_SERVICE));
 
 app.get("/", (req, res) =>
   res.json({ message: "API Gateway Running with express-http-proxy" })

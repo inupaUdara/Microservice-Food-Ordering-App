@@ -1,8 +1,7 @@
-// components/OrderDetails.tsx
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getOrderById } from '../../../services/order/order';
-import Loader from '../../Components/Loader';
+import { getOrderById } from '../../../../services/order/order';
+import Loader from '../../../Components/Loader';
 
 const OrderDetails = () => {
     const { id } = useParams();
@@ -135,7 +134,7 @@ const OrderDetails = () => {
                                             <span className="text-gray-500">IMG</span>
                                         </div>
                                         <div>
-                                            <h3 className="font-medium dark:text-white">Product {product.productId.substring(18, 24)}</h3>
+                                            <h3 className="font-medium dark:text-white">{product.name}</h3>
                                             <p className="text-sm text-gray-500">Qty: {product.quantity}</p>
                                         </div>
                                     </div>
@@ -170,6 +169,14 @@ const OrderDetails = () => {
                         <div className="mt-8 border-t dark:border-gray-700 pt-6">
                             <h2 className="text-lg font-semibold dark:text-white mb-4">Delivery Information</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <h3 className="font-medium dark:text-white mb-2">Restaurant Details</h3>
+                                    <p className="text-gray-600 dark:text-gray-300">
+                                        {order.restaurant.name}
+                                        <br />
+                                        {order.shippingAddress.phone}
+                                    </p>
+                                </div>
                                 <div>
                                     <h3 className="font-medium dark:text-white mb-2">Shipping Address</h3>
                                     <p className="text-gray-600 dark:text-gray-300">

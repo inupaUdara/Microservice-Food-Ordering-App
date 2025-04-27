@@ -71,6 +71,18 @@ const getMenuByCategory = async (req, res) => {
   }
 };
 
+const getAllMenuDetailsByRestaurantId = async (req, res) => {
+  try {
+    const restaurantId = req.params.restaurantId;
+    const menus = await menuService.getAllMenuDetailsByRestaurantId(
+      restaurantId
+    );
+    res.json(menus);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   createMenu,
   getAllMenus,
@@ -78,4 +90,5 @@ module.exports = {
   updateMenu,
   deleteMenu,
   getMenuByCategory,
+  getAllMenuDetailsByRestaurantId,
 };

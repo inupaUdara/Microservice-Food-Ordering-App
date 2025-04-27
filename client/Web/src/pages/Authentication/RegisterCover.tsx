@@ -75,8 +75,8 @@ const RegisterCover = () => {
 
     const submitForm = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const { firstName, lastName, email, password, phone, street, city, state, zipCode, country } = formData;
-        if (!firstName || !lastName || !email || !password || !phone || !street || !city || !state || !zipCode || !country) {
+        const { firstName, lastName, email, password, phone  } = formData;
+        if (!firstName || !lastName || !email || !password || !phone ) {
             const message = 'Please fill all the fields!';
             dispatch(signUpFailure(message));
             showMessage(message);
@@ -91,11 +91,6 @@ const RegisterCover = () => {
                 email,
                 password,
                 phone,
-                street,
-                city,
-                state,
-                zipCode,
-                country,
                 role: 'customer',
             });
             const data = response.data;

@@ -33,6 +33,7 @@ import IconMenuForms from '../Icon/Menu/IconMenuForms';
 import IconMenuPages from '../Icon/Menu/IconMenuPages';
 import IconMenuMore from '../Icon/Menu/IconMenuMore';
 import { signoutSuccess } from '../../store/userConfigSlice';
+import CartIcon from '../../pages/Pages/Customer/Order/CartIcon';
 
 const Header = () => {
     const currentUser = useSelector((state: IRootState) => state.userConfig.currentUser);
@@ -216,6 +217,7 @@ const Header = () => {
                             </button>
                         </div>
                         <div>
+
                             {themeConfig.theme === 'light' ? (
                                 <button
                                     className={`${
@@ -259,6 +261,7 @@ const Header = () => {
                             )}
                         </div>
                         <div className="dropdown shrink-0">
+
                             <Dropdown
                                 offset={[0, 8]}
                                 placement={`${isRtl ? 'bottom-start' : 'bottom-end'}`}
@@ -321,6 +324,7 @@ const Header = () => {
                                 </ul>
                             </Dropdown>
                         </div>
+                        {currentUser && currentUser.role === "customer" && <CartIcon />}
                         <div className="dropdown shrink-0">
                             <Dropdown
                                 offset={[0, 8]}
@@ -416,16 +420,16 @@ const Header = () => {
                                                 </h4>
 
                                                 <h4
-  className="
+                                                    className="
     text-black/60 hover:text-primary
     dark:text-dark-light/60 dark:hover:text-white
     truncate overflow-hidden whitespace-nowrap
     max-w-[160px]  // adjust width as needed
   "
-  title={currentUser && currentUser.email} // shows full email on hover
->
-  {currentUser && currentUser.email}
-</h4>
+                                                    title={currentUser && currentUser.email} // shows full email on hover
+                                                >
+                                                    {currentUser && currentUser.email}
+                                                </h4>
 
                                                 <span className="text-xs bg-success-light rounded text-success px-1 uppercase">{currentUser && currentUser.role}</span>
                                             </div>

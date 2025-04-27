@@ -195,6 +195,7 @@ const loginUser = async ({ email, password }) => {
       role: user.role,
       firstName: user.firstName,
       lastName: user.lastName,
+      phone: user.phone,
       driverProfile:
         user.role === "delivery-person" ? user.driverProfile : null,
       restaurantProfile:
