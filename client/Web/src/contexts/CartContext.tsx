@@ -14,13 +14,16 @@ interface CartState {
   total: number;
   deliveryFee: number;
   grandTotal: number;
+  restaurant: any;
+  distance?: number;
 }
 
 type CartAction =
-  | { type: 'ADD_ITEM'; payload: { restaurantId: string; item: CartItem } }
+  | { type: 'ADD_ITEM'; payload: { restaurantId: string; item: CartItem; restaurant: any } }
   | { type: 'REMOVE_ITEM'; payload: string }
   | { type: 'UPDATE_QUANTITY'; payload: { productId: string; quantity: number } }
-  | { type: 'CLEAR_CART' };
+  | { type: 'CLEAR_CART' }
+  | { type: 'UPDATE_DELIVERY_FEE'; payload: { distance: number; deliveryFee: number } };
 
 const CartContext = createContext<{
   cart: CartState;
@@ -32,6 +35,7 @@ const CartContext = createContext<{
     total: 0,
     deliveryFee: 5,
     grandTotal: 5,
+    restaurant: null,
   },
   dispatch: () => null,
 });
@@ -70,6 +74,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         items: newItems,
         total,
         grandTotal,
+        restaurant: action.payload.restaurant,
       };
     }
 
@@ -109,8 +114,19 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         total: 0,
         deliveryFee: 5,
         grandTotal: 5,
+        restaurant: null,
       };
     }
+
+    case 'UPDATE_DELIVERY_FEE':
+      return {
+        ...state,
+        distance: action.payload.distance,
+        deliveryFee: action.payload.deliveryFee,
+        grandTotal: state.total + action.payload.deliveryFee,
+      };
+
+
 
     default:
       return state;
@@ -124,6 +140,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     total: 0,
     deliveryFee: 5,
     grandTotal: 5,
+    restaurant: null,
   });
 
   return (

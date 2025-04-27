@@ -14,3 +14,10 @@ export const getOrderByRestaurantId = async (id: any) => {
     const response = await api.get(`/users/api/v1/restaurants/${id}/orders`);
     return response.data.orders;
 }
+
+export const createOrder = async (data: any) => {
+    const response = await api.post('/orders/api/v1/orders', data, {});
+    return response.data;
+}
+
+

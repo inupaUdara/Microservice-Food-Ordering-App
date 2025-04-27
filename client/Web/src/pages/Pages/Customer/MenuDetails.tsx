@@ -3,7 +3,11 @@ import { getAllMenuDetailsByRestaurantId } from '../../../services/restaurant/re
 import { useParams } from 'react-router-dom';
 import AddToCartButton from './Order/AddToCartButton';
 
-const MenuDetails = () => {
+interface MenuDetailsProps {
+    restaurant: any;
+}
+
+const MenuDetails = ({ restaurant }:MenuDetailsProps) => {
     const { id } = useParams();
     const [menuItems, setMenuItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -70,7 +74,7 @@ const MenuDetails = () => {
                                     </ul>
                                 </div>
                             )}
-                             <AddToCartButton restaurantId={id!} item={item} />
+                             <AddToCartButton restaurantId={id!} item={item} restaurant={restaurant}/>
                         </div>
                     ))}
                 </div>

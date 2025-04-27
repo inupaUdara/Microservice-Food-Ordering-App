@@ -1,8 +1,7 @@
-// components/AddToCartButton.tsx
 import Swal from 'sweetalert2';
 import { useCart } from '../../../../contexts/CartContext';
 
-const AddToCartButton = ({ restaurantId, item }: { restaurantId: string; item: any }) => {
+const AddToCartButton = ({ restaurantId, item, restaurant }: { restaurantId: string; item: any; restaurant: any }) => {
   const { dispatch } = useCart();
 
   const showAlert = async (type: number) => {
@@ -32,7 +31,8 @@ const AddToCartButton = ({ restaurantId, item }: { restaurantId: string; item: a
           price: item.price,
           quantity: 1,
           image: item.image
-        }
+        },
+        restaurant
       }
     });
     showAlert(15);
