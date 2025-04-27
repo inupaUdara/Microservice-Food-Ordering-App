@@ -103,6 +103,16 @@ services:
       - RABBITMQ_URL=amqp://rabbitmq
     depends_on:
       - rabbitmq
+
+  upload-service:
+    build: ./upload-service
+    container_name: upload-service
+    networks:
+      - micronetwork
+    ports:
+      - "6001:6001"
+    environment:
+      - PORT=6001
     restart: unless-stopped
 
   rabbitmq:
