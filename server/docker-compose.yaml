@@ -76,9 +76,9 @@ services:
     networks:
       - micronetwork
     ports:
-      - "5000:5000"
+      - "6001:6001"
     environment:
-      - PORT=5000
+      - PORT=6001
     restart: unless-stopped
 
   rabbitmq:

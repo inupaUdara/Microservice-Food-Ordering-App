@@ -20,7 +20,7 @@ const RESTAURANT_MENU_SERVICE =
   "http://restaurant-menu-service:3004";
 
 const UPLOAD_SERVICE =
-  process.env.UPLOAD_SERVICE_URL || "http://upload-service:5000";
+  process.env.UPLOAD_SERVICE_URL || "http://upload-service:6001";
 
 // Proxy Requests to Microservices
 app.use("/users", proxy(USER_SERVICE));
