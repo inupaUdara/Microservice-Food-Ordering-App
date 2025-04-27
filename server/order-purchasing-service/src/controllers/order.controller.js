@@ -4,13 +4,19 @@ const createOrder = async (req, res, next) => {
   try {
     const userId = req.user.id;
     console.log(userId);
-    const { restaurantId, products, shippingAddress } = req.body;
+    const { restaurantId, products, shippingAddress, paymentId, totalAmount, deliveryFee, grandTotal, customerEmail, customerPhone } = req.body;
 
     const order = await OrderService.createOrder(
       userId,
       restaurantId,
       products,
-      shippingAddress
+      shippingAddress,
+      paymentId,
+      totalAmount,
+      grandTotal,
+      deliveryFee,
+      customerEmail, 
+      customerPhone
     );
     res.status(201).json(order);
   } catch (error) {
