@@ -89,4 +89,29 @@ const getAllDeliveryPersons = async () => {
   }));
 };
 
-module.exports = { getAllUsers, getAllRestaurants, getAllDeliveryPersons, getAllCustomers };
+const getUserById = async (userId) => {
+  const user = await User.findById(userId)
+    .select("-password") // Exclude passwords
+    .populate("driverProfile")
+    .populate("restaurantProfile");
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return {
+    id: user._id,
+    email: user.email,
+    role: user.role,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    phone: user.phone,
+    driverProfile: user.role === "delivery-person" ? user.driverProfile : null,
+    restaurantProfile:
+      user.role === "restaurant-admin" ? user.restaurantProfile : null,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+}
+
+module.exports = { getAllUsers, getAllRestaurants, getAllDeliveryPersons, getAllCustomers, getUserById };

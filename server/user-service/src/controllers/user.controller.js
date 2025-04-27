@@ -37,4 +37,15 @@ const getAllRestaurants = async (req, res, next) => {
   }
 };
 
-module.exports = { getAllUsers, getAllRestaurants, getAllDeliveryPersons, getAllCustomers };
+const getUserById = async (req, res, next) => {
+  try {
+    const userId = req.params.userId;
+    const user = await userService.getUserById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    next(error);
+  }
+}
+
+module.exports = { getAllUsers, getAllRestaurants, getAllDeliveryPersons, getAllCustomers, getUserById };
