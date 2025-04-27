@@ -4,10 +4,15 @@ const Image = require("../models/imageModel");
 
 const images = new Map();
 const uploadImage = async (file) => {
-  const blob = bucket.file(`images/${Date.now()}_${file.originalname}`);
+  const filename = `images/${Date.now()}_${file.originalname}`;
+  const blob = bucket.file(filename);
+
   const blobStream = blob.createWriteStream({
     metadata: {
       contentType: file.mimetype,
+      metadata: {
+        firebaseStorageDownloadTokens: uuidv4(), // important to generate access token
+      },
     },
   });
 
@@ -15,7 +20,11 @@ const uploadImage = async (file) => {
     blobStream.on("error", (error) => reject(error));
 
     blobStream.on("finish", async () => {
-      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+      const token = blob.metadata.metadata.firebaseStorageDownloadTokens;
+      const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${
+        bucket.name
+      }/o/${encodeURIComponent(blob.name)}?alt=media&token=${token}`;
+
       const id = uuidv4();
       const image = new Image(id, file.originalname, publicUrl);
       images.set(id, image);
