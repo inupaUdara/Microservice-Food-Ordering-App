@@ -121,7 +121,7 @@ const RestaurantDetails = () => {
                     </div>
                 </div>
             </div>
-            <MenuDetails />
+            <MenuDetails restaurant={restaurant} />
         </div>
     );
 };

@@ -2,54 +2,77 @@ const mongoose = require("mongoose");
 const { getChannel } = require("../../lib/rabbitmq.js");
 const { restaurantServiceClient } = require("./restaurant.service.js");
 const Order = require("../models/order.model.js");
+const { sendOrderConfirmation } = require("./notification.service.js");
 
-const createOrder = async (userId, restaurantId, products, shippingAddress) => {
+const createOrder = async (userId, restaurantId, products, shippingAddress, paymentId, totalAmount, grandTotal, deliveryFee, customerEmail, customerPhone ) => {
  
-  if (!userId || !restaurantId || !products?.length || !shippingAddress) {
+  if (!userId || !restaurantId || !products?.length || !shippingAddress || !paymentId || !totalAmount || !grandTotal || !deliveryFee) {
     throw new Error('Missing required fields');
   }
 
-  const subtotal = products.reduce((sum, product) => {
-    if (!product.price || !product.quantity) {
-      throw new Error('Each product must have price and quantity');
-    }
-    return sum + (product.price * product.quantity);
-  }, 0);
+  // const subtotal = products.reduce((sum, product) => {
+  //   if (!product.price || !product.quantity) {
+  //     throw new Error('Each product must have price and quantity');
+  //   }
+  //   return sum + (product.price * product.quantity);
+  // }, 0);
 
  
-  const deliveryFee = calculateSimpleDeliveryFee(subtotal);
-  const grandTotal = subtotal + deliveryFee;
+  // const deliveryFee = calculateSimpleDeliveryFee(subtotal);
+  // const grandTotal = subtotal + deliveryFee;
 
   const order = new Order({ 
     userId, 
     restaurantId,
     products, 
-    totalAmount: subtotal,
+    totalAmount,
     deliveryFee,
     grandTotal,
     shippingAddress,
-    status: "pending"
+    status: "pending",
+    paymentId
   });
 
-  return await order.save();
+  console.log('customerEmail:', customerEmail); 
+  console.log('customerPhone:', customerPhone);
+
+  const savedOrder = await order.save();
+
+  try {
+    await sendOrderConfirmation(customerEmail, customerPhone, {
+      orderId: savedOrder._id,
+      totalAmount: savedOrder.totalAmount,
+      deliveryFee: savedOrder.deliveryFee,
+      grandTotal: savedOrder.grandTotal,
+      products: savedOrder.products,
+    });
+    console.log('Order confirmation notification sent successfully.');
+  } catch (err) {
+    console.error('Failed to send order confirmation:', err.message);
+    // Optional: decide if you want to continue even if notification fails
+  }
+
+  return savedOrder;
+
+  
 };
 
 
-function calculateSimpleDeliveryFee(subtotal) {
-  // Free delivery for large orders
-  if (subtotal > 10000) return 0;
+// function calculateSimpleDeliveryFee(subtotal) {
+//   // Free delivery for large orders
+//   if (subtotal > 10000) return 0;
   
-  // Reduced fee for medium orders
-  if (subtotal > 5000) return 2.99;
+//   // Reduced fee for medium orders
+//   if (subtotal > 5000) return 200;
   
-  // Standard fee for small orders
-  if (subtotal > 2000) return 4.99;
+//   // Standard fee for small orders
+//   if (subtotal > 2000) return 400;
   
-  // Minimum order surcharge
-  if (subtotal > 0) return 6.99;
+//   // Minimum order surcharge
+//   if (subtotal > 0) return 600;
   
-  throw new Error('Order total must be positive');
-}
+//   throw new Error('Order total must be positive');
+// }
 
 const getRestaurantOrders = async (restaurantId) => {
   return await Order.find({ restaurantId }).sort({ createdAt: -1 });

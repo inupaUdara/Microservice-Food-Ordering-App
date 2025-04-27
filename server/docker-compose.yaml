@@ -10,10 +10,17 @@ services:
       - USER_SERVICE_URL=http://user-service:3001
       - ORDER_SERVICE_URL=http://order-purchasing-service:3002
       - DELIVERY_SERVICE_URL=http://delivery-service:3003
+      - RESTAURANT_MENU_SERVICE_URL=http://restaurant-menu-service:3004
+      - NOTIFICATION_SERVICE_URL=http://notification-service:5001
+      - PAYMENT_SERVICE_URL=http://payment-service:5002
+
     depends_on:
       - user-service
       - order-purchasing-service
       - delivery-service
+      - restaurant-menu-service
+      - notification-service
+      - payment-service
       - rabbitmq
     restart: unless-stopped
 
@@ -69,6 +76,33 @@ services:
     environment:
       - PORT=3004
     restart: unless-stopped
+
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    networks:
+      - micronetwork
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - RABBITMQ_URL=amqp://rabbitmq
+    depends_on:
+      - rabbitmq
+    restart: unless-stopped
+
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    networks:
+      - micronetwork
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+      - RABBITMQ_URL=amqp://rabbitmq
+    depends_on:
+      - rabbitmq
 
   upload-service:
     build: ./upload-service
