@@ -2,12 +2,22 @@ const { sendSMS } = require('../services/sms.service');
 const { sendEmail } = require('../services/email.service');
 
 const sendOrderConfirmation = async (customerEmail, customerPhone, orderDetails) => {
-  const emailText = `Your order has been confirmed. Details: ${orderDetails}`;
-  const smsText = `Order confirmed: ${orderDetails}`;
+  // Only sending necessary data to templates
+  const emailData = {
+    customerName: orderDetails.customerName,  // Should be part of orderDetails
+    orderId: orderDetails.orderId,            // Same
+    orderItems: orderDetails.items.join(', ')  // Assuming orderDetails.items is an array of items
+  };
+
+  const smsText = `Order confirmed: ${orderDetails.orderId}, Items: ${orderDetails.items.join(', ')}`;
 
   try {
+    // Send SMS
     await sendSMS(customerPhone, smsText);
-    await sendEmail(customerEmail, 'Order Confirmation', emailText);
+    
+    // Send HTML Email
+    await sendEmail(customerEmail, 'Order Confirmation', 'order-confirmation', emailData);
+
     return { success: true, message: 'Notifications sent successfully' };
   } catch (error) {
     console.error('Error sending notifications:', error);
@@ -17,12 +27,12 @@ const sendOrderConfirmation = async (customerEmail, customerPhone, orderDetails)
 
 
 const sendRegistrationConfirmation = async (customerEmail, customerPhone, userName) => {
-  const emailText = `Hello ${userName}, welcome! Your registration was successful.`;
+  const emailData = { userName };
   const smsText = `Welcome ${userName}! Registration successful.`;
 
   try {
     await sendSMS(customerPhone, smsText);
-    await sendEmail(customerEmail, 'Welcome to Food Delivery Service', emailText);
+    await sendEmail(customerEmail, 'Welcome to Food Delivery Service', 'registration-confirmation', emailData); // Use HTML template
     return { success: true, message: 'Registration notifications sent successfully' };
   } catch (error) {
     console.error('Error sending registration notifications:', error);
