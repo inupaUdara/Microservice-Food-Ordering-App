@@ -40,3 +40,8 @@ export const approveRestaurant = async (id: any, isApproved: boolean) => {
     const response = await api.put(`/users/api/v1/restaurants/approve/${id}`, { isApproved });
     return response.data.restaurant;
 };
+
+export const getMenuById = async (id: any) => {
+    const response = await api.get(`/menu/api/v1/menu/${id}`);
+    return response.data;
+};
