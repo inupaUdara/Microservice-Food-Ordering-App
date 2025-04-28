@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { createMenu } from '../../../../services/restaurant/restaurant';
 import { uploadImage } from '../../../../services/upload/upload';
 
@@ -37,6 +37,7 @@ const CreateMenus: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [submitting, setSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const navigate = useNavigate();
 
     const [formData, setFormData] = useState<FormData>({
         name: '',
@@ -198,6 +199,7 @@ const CreateMenus: React.FC = () => {
                 isVeg: false,
                 spicyLevel: 'Mild',
             });
+            navigate('/menus');
         } catch (error) {
             console.error('Failed to create menu', error);
         } finally {

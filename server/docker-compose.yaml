@@ -13,6 +13,7 @@ services:
       - RESTAURANT_MENU_SERVICE_URL=http://restaurant-menu-service:3004
       - NOTIFICATION_SERVICE_URL=http://notification-service:5001
       - PAYMENT_SERVICE_URL=http://payment-service:5002
+      - UPLOAD_SERVICE_URL=http://upload-service:6001
 
     depends_on:
       - user-service
@@ -21,6 +22,7 @@ services:
       - restaurant-menu-service
       - notification-service
       - payment-service
+      - upload-service
       - rabbitmq
     restart: unless-stopped
 

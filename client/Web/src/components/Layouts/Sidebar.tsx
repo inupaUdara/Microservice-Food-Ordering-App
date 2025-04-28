@@ -122,16 +122,44 @@ const Sidebar = () => {
                                 </>
                             )}
                             {currentUser && currentUser.role === 'restaurant-admin' && (
-                                <li className="menu nav-item">
-                                    <li className="nav-item">
-                                        <NavLink to="/menus" className="group">
-                                            <div className="flex items-center">
-                                                <IconMenuDashboard className="group-hover:!text-primary shrink-0" />
-                                                <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Menus')}</span>
-                                            </div>
-                                        </NavLink>
+                                <>
+                                    <li className="menu nav-item">
+                                        <li className="nav-item">
+                                            <NavLink to="/menus" className="group">
+                                                <div className="flex items-center">
+                                                    <IconMenuDashboard className="group-hover:!text-primary shrink-0" />
+                                                    <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('Menus')}</span>
+                                                </div>
+                                            </NavLink>
+                                        </li>
                                     </li>
-                                </li>
+                                    <li className="menu nav-item">
+                                        <button type="button" className={`${currentMenu === 'Orders' ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu('Orders')}>
+                                            <div className="flex items-center">
+                                                <IconMenuTodo className="group-hover:!text-primary shrink-0" />
+                                                <span className="ltr:pl-3 rtl:pr-3 text-black dark:text-[#506690] dark:group-hover:text-white-dark">{t('All Orders')}</span>
+                                            </div>
+
+                                            <div className={currentMenu !== 'Orders' ? 'rtl:rotate-90 -rotate-90' : ''}>
+                                                <IconCaretDown />
+                                            </div>
+                                        </button>
+
+                                        <AnimateHeight duration={300} height={currentMenu === 'Orders' ? 'auto' : 0}>
+                                            <ul className="sub-menu text-gray-500">
+                                                <li>
+                                                    <NavLink to="/restaurants-unapproved-orders">{t('Unapproved')}</NavLink>
+                                                </li>
+                                                <li>
+                                                    <NavLink to="/restaurants-approved-orders">{t('Approved')}</NavLink>
+                                                </li>
+                                                <li>
+                                                    <NavLink to="/restaurants-complete-orders">{t('Complete')}</NavLink>
+                                                </li>
+                                            </ul>
+                                        </AnimateHeight>
+                                    </li>
+                                </>
                             )}
                             {currentUser && currentUser.role === 'delivery-person' && (
                                 <>
