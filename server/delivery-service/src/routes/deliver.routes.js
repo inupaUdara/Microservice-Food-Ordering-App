@@ -1,14 +1,18 @@
 const express = require('express');
-const { assignDriver } = require('../services/deliver.service.js');
+const { assignDriverToOrder, updateDeliveryStatus, trackDelivery, getDeliveryById, getAllDeliveries, getDeliveriesByUserId, getDeliveriesByDriverId } = require('../controllers/delivery.controller');
+const {authenticateToken, authorizeRoles} = require('../middlewares/auth.middleware');
+const { updateDeliveryLocation } = require('../services/deliver.service');
+
 
 const router = express.Router();
 
-// Manual test endpoint for delivery assignment
-router.post('/assign', async (req, res) => {
-  const delivery = await assignDriver(req.body);
-  if (!delivery) return res.status(400).json({ message: 'No available driver' });
-
-  res.status(201).json(delivery);
-});
+router.post('/assign', authenticateToken, assignDriverToOrder);
+router.patch('/:deliveryId/status',authenticateToken, updateDeliveryStatus);
+router.get('/:deliveryId/track',authenticateToken, trackDelivery);
+router.get('/:deliveryId',authenticateToken, getDeliveryById);
+router.get('/',authenticateToken, getAllDeliveries);
+router.get('/user/:userId',authenticateToken, getDeliveriesByUserId);
+router.get('/driver/:driverId',authenticateToken, getDeliveriesByDriverId);
+router.patch('/:deliveryId/location',authenticateToken, updateDeliveryLocation);
 
 module.exports = router;
