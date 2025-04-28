@@ -27,4 +27,18 @@ const getRestaurantById = async (req, res, next) => {
     next(error);
   }
 }
-module.exports = { approveOfRestaurant, getRestaurantById };
+
+const getBatchRestaurants = async (req, res) => {
+  try {
+    if (!req.body.ids || !Array.isArray(req.body.ids)) {
+      return res.status(400).json({ message: 'Array of restaurant IDs is required' });
+    }
+
+    const restaurants = await restaurantService.getBatchRestaurants(req.body.ids);
+    res.json(restaurants);
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { approveOfRestaurant, getRestaurantById, getBatchRestaurants };

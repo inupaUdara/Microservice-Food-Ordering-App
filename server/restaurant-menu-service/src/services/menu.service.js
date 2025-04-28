@@ -1,4 +1,5 @@
 const Menu = require("../models/menu.model.js");
+const mongoose = require("mongoose");
 
 const createMenu = async (menuData) => {
   try {
@@ -9,18 +10,21 @@ const createMenu = async (menuData) => {
   }
 };
 
-const getAllMenus = async (userId) => {
+const getAllMenus = async (restaurantId) => {
   try {
-    const menus = await Menu.find({ userId }).sort({ createdAt: -1 });
+    const objectId = new mongoose.Types.ObjectId(restaurantId);
+    const menus = await Menu.find({ restaurantId: objectId }).sort({
+      createdAt: -1,
+    });
     return menus;
   } catch (error) {
     throw new Error(error.message);
   }
 };
 
-const getMenuById = async (userId, menuId) => {
+const getMenuById = async (restaurantId, menuId) => {
   try {
-    const menu = await Menu.findOne({ _id: menuId, userId });
+    const menu = await Menu.findOne({ _id: menuId, restaurantId });
     if (!menu) throw new Error("Menu not found");
     return menu;
   } catch (error) {
@@ -28,7 +32,7 @@ const getMenuById = async (userId, menuId) => {
   }
 };
 
-const updateMenu = async (menuId, userId, updateData) => {
+const updateMenu = async (menuId, restaurantId, updateData) => {
   try {
     const allowedUpdates = [
       "name",
@@ -53,7 +57,7 @@ const updateMenu = async (menuId, userId, updateData) => {
     if (!isValidUpdate) throw new Error("Invalid updates!");
 
     const menu = await Menu.findOneAndUpdate(
-      { _id: menuId, userId },
+      { _id: menuId, restaurantId },
       updateData,
       { new: true, runValidators: true }
     );
@@ -66,9 +70,9 @@ const updateMenu = async (menuId, userId, updateData) => {
   }
 };
 
-const deleteMenu = async (menuId, userId) => {
+const deleteMenu = async (menuId, restaurantId) => {
   try {
-    const menu = await Menu.findOneAndDelete({ _id: menuId, userId });
+    const menu = await Menu.findOneAndDelete({ _id: menuId, restaurantId });
     if (!menu) throw new Error("Menu not found");
     return menu;
   } catch (error) {
@@ -76,9 +80,22 @@ const deleteMenu = async (menuId, userId) => {
   }
 };
 
-const getMenuByCategory = async (userId, category) => {
+const getMenuByCategory = async (restaurantId, category) => {
   try {
-    const menus = await Menu.find({ userId, category });
+    const menus = await Menu.find({ restaurantId, category });
+    return menus;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+const getAllMenuDetailsByRestaurantId = async (restaurantId) => {
+  try {
+    const objectId = new mongoose.Types.ObjectId(restaurantId);
+    const menus = await Menu.find({ restaurantId: objectId }).sort({
+      createdAt: -1,
+    });
+
     return menus;
   } catch (error) {
     throw new Error(error.message);
@@ -92,4 +109,5 @@ module.exports = {
   updateMenu,
   deleteMenu,
   getMenuByCategory,
+  getAllMenuDetailsByRestaurantId,
 };

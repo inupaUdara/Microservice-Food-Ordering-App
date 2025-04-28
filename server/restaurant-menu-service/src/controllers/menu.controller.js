@@ -2,8 +2,8 @@ const menuService = require("../services/menu.service");
 
 const createMenu = async (req, res) => {
   try {
-    const { userId } = req.user;
-    const menuData = { ...req.body, userId };
+    const restaurantId = req.user.restaurantId;
+    const menuData = { ...req.body, restaurantId };
     const menu = await menuService.createMenu(menuData);
     res.status(201).json(menu);
   } catch (error) {
@@ -13,8 +13,8 @@ const createMenu = async (req, res) => {
 
 const getAllMenus = async (req, res) => {
   try {
-    const { userId } = req.user;
-    const menus = await menuService.getAllMenus(userId);
+    const restaurantId = req.user.restaurantId;
+    const menus = await menuService.getAllMenus(restaurantId);
     res.json(menus);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -23,8 +23,8 @@ const getAllMenus = async (req, res) => {
 
 const getMenuById = async (req, res) => {
   try {
-    const { userId } = req.user;
-    const menu = await menuService.getMenuById(userId, req.params.menuId);
+    const restaurantId = req.user.restaurantId;
+    const menu = await menuService.getMenuById(restaurantId, req.params.menuId);
     if (!menu) return res.status(404).json({ error: "Menu not found" });
     res.json(menu);
   } catch (error) {
@@ -34,10 +34,10 @@ const getMenuById = async (req, res) => {
 
 const updateMenu = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const restaurantId = req.user.restaurantId;
     const menu = await menuService.updateMenu(
       req.params.menuId,
-      userId,
+      restaurantId,
       req.body
     );
     if (!menu) return res.status(404).json({ error: "Menu not found" });
@@ -49,8 +49,8 @@ const updateMenu = async (req, res) => {
 
 const deleteMenu = async (req, res) => {
   try {
-    const { userId } = req.user;
-    const menu = await menuService.deleteMenu(req.params.menuId, userId);
+    const restaurantId = req.user.restaurantId;
+    const menu = await menuService.deleteMenu(req.params.menuId, restaurantId);
     if (!menu) return res.status(404).json({ error: "Menu not found" });
     res.json(menu);
   } catch (error) {
@@ -60,10 +60,22 @@ const deleteMenu = async (req, res) => {
 
 const getMenuByCategory = async (req, res) => {
   try {
-    const { userId } = req.user;
+    const restaurantId = req.user.restaurantId;
     const menus = await menuService.getMenuByCategory(
-      userId,
+      restaurantId,
       req.params.category
+    );
+    res.json(menus);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getAllMenuDetailsByRestaurantId = async (req, res) => {
+  try {
+    const restaurantId = req.params.restaurantId;
+    const menus = await menuService.getAllMenuDetailsByRestaurantId(
+      restaurantId
     );
     res.json(menus);
   } catch (error) {
@@ -78,4 +90,5 @@ module.exports = {
   updateMenu,
   deleteMenu,
   getMenuByCategory,
+  getAllMenuDetailsByRestaurantId,
 };

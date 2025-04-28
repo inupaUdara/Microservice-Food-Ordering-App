@@ -1,58 +1,154 @@
-const orderService = require("../services/order.service");
+const { default: axios } = require("axios");
+const OrderService = require("../services/order.service.js");
 
-const createOrder = async (req, res) => {
+const createOrder = async (req, res, next) => {
   try {
-    const { products, shippingAddress } = req.body;
-    const order = await orderService.createOrder(req.user.id, products, shippingAddress);
+    const userId = req.user.id;
+    console.log(userId);
+    const {
+      restaurantId,
+      products,
+      shippingAddress,
+      paymentId,
+      totalAmount,
+      deliveryFee,
+      grandTotal,
+      customerEmail,
+      customerPhone,
+    } = req.body;
+
+    const order = await OrderService.createOrder(
+      userId,
+      restaurantId,
+      products,
+      shippingAddress,
+      paymentId,
+      totalAmount,
+      grandTotal,
+      deliveryFee,
+      customerEmail,
+      customerPhone
+    );
     res.status(201).json(order);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-const getUserOrders = async (req, res) => {
+const getRestaurantOrders = async (req, res, next) => {
   try {
-    const orders = await orderService.getUserOrders(req.user.id);
-    res.json(orders);
+    const restaurantId = req.user.restaurantId;
+
+    const role = req.user.role;
+
+    const orders = await OrderService.getRestaurantOrders(restaurantId);
+
+    res.status(200).json(orders);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-const getOrderById = async (req, res) => {
+const getUserOrders = async (req, res, next) => {
   try {
-    const order = await orderService.getOrderById(req.user.id, req.params.orderId);
-    if (!order) return res.status(404).json({ error: "Order not found" });
-    res.json(order);
+    const userId = req.user.id;
+    const orders = await OrderService.getUserOrders(userId);
+    res.status(200).json(orders);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-const updateOrderStatus = async (req, res) => {
+const getOrderById = async (req, res, next) => {
   try {
-    const order = await orderService.updateOrderStatus(req.user.id, req.params.orderId, req.body.status);
-    if (!order) return res.status(404).json({ error: "Order not found" });
-    res.json(order);
+    const userId = req.user.id;
+    const { orderId } = req.params;
+
+    const order = await OrderService.getOrderById(userId, orderId);
+    if (!order) {
+      const error = new Error("Order is not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    res.status(200).json(order);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-const cancelOrder = async (req, res) => {
+const updateOrderStatus = async (req, res, next) => {
   try {
-    const order = await orderService.cancelOrder(req.user.id, req.params.orderId);
-    if (!order) return res.status(404).json({ error: "Order not found or cannot be cancelled" });
-    res.json(order);
+    const userId = req.user.id;
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    const updatedOrder = await OrderService.updateOrderStatus(
+      userId,
+      orderId,
+      status
+    );
+
+    if (!updatedOrder) {
+      const error = new Error("Order is not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    res.status(200).json(updatedOrder);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
+  }
+};
+
+const cancelOrder = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { orderId } = req.params;
+
+    const cancelledOrder = await OrderService.cancelOrder(userId, orderId);
+    if (!cancelledOrder) {
+      const error = new Error(
+        "Order cannot be cancelled after out for delivery or delivered"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    res.status(200).json(cancelledOrder);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getGeoCode = async (req, res, next) => {
+  try {
+    const { address } = req.query;
+    console.log("address", address);
+    if (!address) {
+      return res.status(400).json({ error: "Address is required" });
+    }
+    const response = await axios.get(
+      "https://maps.googleapis.com/maps/api/geocode/json",
+      {
+        params: {
+          address,
+          key: process.env.GOOGLE_MAPS_API_KEY,
+        },
+      }
+    );
+    res.json(response.data);
+  } catch (error) {
+    next(error);
   }
 };
 
 module.exports = {
-    createOrder,
-    getUserOrders,
-    getOrderById,
-    updateOrderStatus,
-    cancelOrder
-}
+  createOrder,
+  getRestaurantOrders,
+  getUserOrders,
+  getOrderById,
+  updateOrderStatus,
+  cancelOrder,
+  getGeoCode,
+};

@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: restaurant-menu-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: restaurant-menu-service
+  template:
+    metadata:
+      labels:
+        app: restaurant-menu-service
+    spec:
+      containers:
+        - name: restaurant-menu-service
+          image: kalhara07/restaurant-menu-service:latest
+          ports:
+            - containerPort: 3004
