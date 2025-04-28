@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react';
-import { getAllMenuItems } from '../../../../services/restaurant/restaurant';
-import { getImageById } from '../../../../services/upload/upload';
-import { useParams, Link, useNavigate } from 'react-router-dom'; // Add useNavigate
+import { getAllMenuItems, deleteMenu } from '../../../../services/restaurant/restaurant';
+import { getImageById, deleteImage } from '../../../../services/upload/upload';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { setPageTitle } from '../../../../store/themeConfigSlice';
 import { DataTable } from 'mantine-datatable';
 import { useDispatch } from 'react-redux';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
 import Loader from '../../../Components/Loader';
 import MenuModel from './MenuModel';
+import Swal from 'sweetalert2'; // NEW: import SweetAlert2
 
 const Menus = () => {
     const dispatch = useDispatch();
     const { id } = useParams();
-    const navigate = useNavigate(); // Initialize useNavigate
+    const navigate = useNavigate();
 
     const [page, setPage] = useState(1);
     const PAGE_SIZES = [10, 20, 30, 50, 100];
@@ -24,7 +25,6 @@ const Menus = () => {
     const [error, setError] = useState<string | null>(null);
 
     const [searchTerm, setSearchTerm] = useState('');
-    //const pathPrefix = id ? `/restaurants/${id}` : '';
     const [selectedCategory, setSelectedCategory] = useState<string>('');
 
     const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -34,40 +34,41 @@ const Menus = () => {
         dispatch(setPageTitle('Menu Items'));
     }, [dispatch]);
 
-    useEffect(() => {
-        const fetchMenuItems = async () => {
-            try {
-                const data = await getAllMenuItems(id!);
+    const fetchMenuItems = async () => {
+        setLoading(true);
+        try {
+            const data = await getAllMenuItems(id!);
 
-                const itemsWithImages = await Promise.all(
-                    (data || []).map(async (item: any) => {
-                        if (item.image) {
-                            if (item.image.startsWith('http')) {
-                                return { ...item, imageUrl: item.image };
-                            } else {
-                                try {
-                                    const imageData = await getImageById(item.image);
-                                    return { ...item, imageUrl: imageData.url };
-                                } catch (error) {
-                                    console.error('Error fetching image for item:', item.name, error);
-                                    return { ...item, imageUrl: null };
-                                }
+            const itemsWithImages = await Promise.all(
+                (data || []).map(async (item: any) => {
+                    if (item.image) {
+                        if (item.image.startsWith('http')) {
+                            return { ...item, imageUrl: item.image };
+                        } else {
+                            try {
+                                const imageData = await getImageById(item.image);
+                                return { ...item, imageUrl: imageData.url };
+                            } catch (error) {
+                                console.error('Error fetching image for item:', item.name, error);
+                                return { ...item, imageUrl: null };
                             }
                         }
-                        return { ...item, imageUrl: null };
-                    })
-                );
+                    }
+                    return { ...item, imageUrl: null };
+                })
+            );
 
-                setMenuItems(itemsWithImages);
-                setFilteredMenuItems(itemsWithImages);
-            } catch (error) {
-                setError('Error fetching menu items');
-                console.error('Error fetching menu items:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+            setMenuItems(itemsWithImages);
+            setFilteredMenuItems(itemsWithImages);
+        } catch (error) {
+            setError('Error fetching menu items');
+            console.error('Error fetching menu items:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchMenuItems();
     }, [id]);
 
@@ -117,12 +118,40 @@ const Menus = () => {
     };
 
     const handleEditItem = (item: any) => {
-        // if (!id || !item._id) {
-        //     console.error('Missing restaurant ID or menu item ID', { menuId: item._id });
-        //     return;
-        // }
-        console.log('Navigating to:', `/edit-menu/${item._id}`);
         navigate(`/edit-menu/${item._id}`);
+    };
+
+    const handleDeleteItem = async (item: any) => {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: 'Do you want to delete this menu item?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Delete',
+            cancelButtonText: 'Cancel',
+        });
+
+        if (result.isConfirmed) {
+            try {
+                // Delete the menu item
+                await deleteMenu(item._id);
+
+                // Only delete the image if it's not an external URL
+                if (item.image && !item.image.startsWith('http')) {
+                    await deleteImage(item.image);
+                }
+
+                // Refresh the menu items from server
+                await fetchMenuItems();
+
+                Swal.fire('Deleted!', 'Menu item has been deleted.', 'success');
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                Swal.fire('Error', 'Failed to delete the menu item.', 'error');
+            }
+        }
     };
 
     if (loading) return <Loader />;
@@ -220,7 +249,7 @@ const Menus = () => {
                                                 <button title="Edit" onClick={() => handleEditItem(item)}>
                                                     <Pencil size={20} className="text-green-500 hover:text-green-700 cursor-pointer" />
                                                 </button>
-                                                <button title="Delete">
+                                                <button type="button" title="Delete" onClick={() => handleDeleteItem(item)}>
                                                     <Trash2 size={20} className="text-red-500 hover:text-red-700 cursor-pointer" />
                                                 </button>
                                             </div>

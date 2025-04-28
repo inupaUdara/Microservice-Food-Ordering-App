@@ -50,3 +50,8 @@ export const getMenuById = async (id: any) => {
     const response = await api.get(`/menu/api/v1/menu/${id}`);
     return response.data;
 };
+
+export const deleteMenu = async (id: string) => {
+    const response = await api.delete(`/menu/api/v1/menu/${id}`);
+    return response.data;
+};

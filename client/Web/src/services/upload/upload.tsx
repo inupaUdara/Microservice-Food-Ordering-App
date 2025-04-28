@@ -44,3 +44,13 @@ export const getImageById = async (id: string) => {
         throw error;
     }
 };
+
+export const deleteImage = async (id: string) => {
+    try {
+        const response = await api.delete(`upload/api/images/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting image:', error);
+        throw error;
+    }
+};
