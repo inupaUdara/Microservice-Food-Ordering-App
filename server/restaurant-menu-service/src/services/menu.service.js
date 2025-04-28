@@ -32,7 +32,7 @@ const getMenuById = async (restaurantId, menuId) => {
   }
 };
 
-const updateMenu = async (menuId, restaurantId, updateData) => {
+const updateMenu = async (menuId, updateData) => {
   try {
     const allowedUpdates = [
       "name",
@@ -56,11 +56,10 @@ const updateMenu = async (menuId, restaurantId, updateData) => {
 
     if (!isValidUpdate) throw new Error("Invalid updates!");
 
-    const menu = await Menu.findOneAndUpdate(
-      { _id: menuId, restaurantId },
-      updateData,
-      { new: true, runValidators: true }
-    );
+    const menu = await Menu.findOneAndUpdate({ _id: menuId }, updateData, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!menu) throw new Error("Menu not found");
 

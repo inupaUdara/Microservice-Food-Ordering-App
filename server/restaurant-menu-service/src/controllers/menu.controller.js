@@ -34,10 +34,10 @@ const getMenuById = async (req, res) => {
 
 const updateMenu = async (req, res) => {
   try {
-    const restaurantId = req.user.restaurantId;
+    //const restaurantId = req.user.restaurantId;
     const menu = await menuService.updateMenu(
       req.params.menuId,
-      restaurantId,
+      //restaurantId,
       req.body
     );
     if (!menu) return res.status(404).json({ error: "Menu not found" });
