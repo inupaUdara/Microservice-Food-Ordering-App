@@ -114,4 +114,28 @@ const getUserById = async (userId) => {
   };
 }
 
-module.exports = { getAllUsers, getAllRestaurants, getAllDeliveryPersons, getAllCustomers, getUserById };
+const deleteUser = async (userId) => {
+  const user = await User.findByIdAndDelete(userId);
+  if (!user) {
+    const error = new Error("User not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // If the user is a restaurant-admin, delete the associated restaurant
+  if (user.role === "restaurant-admin") {
+    await Restaurant.findOneAndDelete({
+      userId: user._id,
+    });
+  }
+  // If the user is a delivery-person, delete the associated driver profile
+  if (user.role === "delivery-person") {
+    await Driver.findOneAndDelete({
+      userId: user._id,
+    });
+  }
+ 
+  return { message: "User deleted successfully" };
+};
+
+module.exports = { getAllUsers, getAllRestaurants, getAllDeliveryPersons, getAllCustomers, getUserById, deleteUser };

@@ -10,5 +10,6 @@ userRouter.get("/customers", verifyToken, isAdmin, getAllCustomers);
 userRouter.get("/delivery-persons", verifyToken, isAdmin, getAllDeliveryPersons);
 userRouter.get("/restaurants", getAllRestaurants);
 userRouter.get("/:userId", getUserById);
+userRouter.delete("/:userId", verifyToken, isAdmin, getUserById);
 
 module.exports = userRouter;

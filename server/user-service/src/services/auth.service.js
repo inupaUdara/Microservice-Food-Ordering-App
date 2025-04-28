@@ -237,4 +237,96 @@ const getUserProfile = async (userId) => {
   };
 };
 
-module.exports = { registerUser, loginUser, getUserProfile };
+const updateUserProfile = async (userId, updateData) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Update common user fields
+    const userUpdates = {};
+    const allowedUserFields = ['firstName', 'lastName', 'phone', 'address'];
+    allowedUserFields.forEach(field => {
+      if (updateData[field] !== undefined) {
+        userUpdates[field] = updateData[field];
+      }
+    });
+
+    if (Object.keys(userUpdates).length > 0) {
+      await User.findByIdAndUpdate(userId, userUpdates, { new: true, runValidators: true });
+    }
+
+    // Update role-specific profiles
+    let profileUpdate;
+    switch (user.role) {
+      case 'delivery-person':
+        profileUpdate = await this.updateDriverProfile(userId, updateData);
+        break;
+      case 'restaurant-admin':
+        profileUpdate = await this.updateRestaurantProfile(userId, updateData);
+        break;
+    }
+
+    // Get updated user with populated profile
+    const updatedUser = await User.findById(userId)
+      .populate({
+        path: 'driverProfile',
+        select: '-documents -activeOrders -__v'
+      })
+      .populate({
+        path: 'restaurantProfile',
+        select: '-__v -createdAt'
+      })
+      .select('-password -__v');
+
+    return updatedUser;
+    
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+const updateDriverProfile = async (userId, updateData) => {
+  const driver = await Driver.findOne({ userId });
+  if (!driver) {
+    throw new Error('Driver profile not found');
+  }
+
+  const allowedFields = ['vehicleType', 'vehicleNumber', 'licenseNumber', 'currentLocation'];
+  const driverUpdates = {};
+  
+  allowedFields.forEach(field => {
+    if (updateData[field] !== undefined) {
+      driverUpdates[field] = updateData[field];
+    }
+  });
+
+  return Driver.findByIdAndUpdate(driver._id, driverUpdates, { new: true, runValidators: true });
+};
+
+const updateRestaurantProfile = async (userId, updateData) => {
+  const restaurant = await Restaurant.findOne({ userId });
+  if (!restaurant) {
+    throw new Error('Restaurant profile not found');
+  }
+
+  const allowedFields = [
+    'restaurantName', 'restaurantPhone', 'restaurantAddress', 'openingHours', 'logo'
+  ];
+  const restaurantUpdates = {};
+
+  allowedFields.forEach(field => {
+    if (updateData[field] !== undefined) {
+      restaurantUpdates[field] = updateData[field];
+    }
+  });
+
+  return Restaurant.findByIdAndUpdate(
+    restaurant._id,
+    restaurantUpdates,
+    { new: true, runValidators: true }
+  );
+};
+
+module.exports = { registerUser, loginUser, getUserProfile, updateUserProfile, updateDriverProfile, updateRestaurantProfile };
