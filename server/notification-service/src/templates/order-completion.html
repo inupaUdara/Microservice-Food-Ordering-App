@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Delivered Successfully</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #2c3e50;
+            font-size: 24px;
+        }
+        p {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .order-details {
+            background-color: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .order-details strong {
+            color: #2980b9;
+        }
+        .footer {
+            text-align: center;
+            font-size: 14px;
+            color: #95a5a6;
+            margin-top: 30px;
+        }
+        .footer a {
+            color: #2980b9;
+            text-decoration: none;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: #2980b9;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            background-color: #3498db;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Order Delivered Successfully!</h2>
+        <p>Dear {{customerName}},</p>
+        <p>We are pleased to inform you that your order has been successfully delivered. Thank you for choosing our service!</p>
+        
+        <div class="order-details">
+            <p><strong>Order ID:</strong> {{orderId}}</p>
+            <p><strong>Items:</strong> {{orderItems}}</p>
+        </div>
+        
+        <p>If you have any questions or feedback, feel free to <a href="mailto:support@fooddelivery.com">contact us</a>.</p>
+
+        <p>Thank you for being a valued customer!</p>
+
+        <a href="https://www.fooddelivery.com" class="btn">Visit Our Website</a>
+
+        <div class="footer">
+            <p>Best regards,<br>The Food Delivery Team</p>
+            <p><a href="https://www.fooddelivery.com/terms">Terms & Conditions</a> | <a href="https://www.fooddelivery.com/privacy">Privacy Policy</a></p>
+        </div>
+    </div>
+
+</body>
+</html>
