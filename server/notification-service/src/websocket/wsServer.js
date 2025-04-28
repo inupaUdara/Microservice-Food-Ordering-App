@@ -43,4 +43,18 @@ const broadcastOrderCompletion = (orderDetails) => {
   });
 };
 
-module.exports = { broadcastOrderAssignment, broadcastOrderCompletion };
+// Function to broadcast an order cancellation notification to all connected delivery personnel
+const broadcastOrderCancellation = (orderDetails) => {
+  const payload = JSON.stringify({
+    type: 'order_canceled',
+    data: orderDetails
+  });
+
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(payload);  // Send the cancellation message to all connected clients
+    }
+  });
+};
+
+module.exports = { broadcastOrderAssignment, broadcastOrderCompletion, broadcastOrderCancellation };
