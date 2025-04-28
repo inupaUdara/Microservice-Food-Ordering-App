@@ -13,21 +13,88 @@ import IconGithub from '../../components/Icon/IconGithub';
 import { IRootState } from '../../store';
 import { updateFailure, updateStart, updateSuccess } from '../../store/userConfigSlice';
 import Swal from 'sweetalert2';
+import IconLockDots from '../../components/Icon/IconLockDots';
+import IconWheel from '../../components/Icon/IconWheel';
 
 const AccountSetting = () => {
     const currentUser = useSelector((state: IRootState) => state.userConfig.currentUser);
     const dispatch = useDispatch();
+    const [tabs, setTabs] = useState<string>('profile');
+    const [showPassword, setShowPassword] = useState(false);
+    const [errors, setErrors] = useState<any>({});
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            zipCode: '',
+            country: '',
+        },
+        ...(currentUser?.role === 'delivery-person' && {
+            vehicleType: '',
+            vehicleNumber: '',
+            licenseNumber: '',
+        }),
+        ...(currentUser?.role === 'restaurant-admin' && {
+            restaurantName: '',
+            restaurantPhone: '',
+            restaurantAddress: {
+                street: '',
+                city: '',
+                state: '',
+                zipCode: '',
+                country: '',
+            },
+            openingHours: [],
+        }),
+    });
+
     useEffect(() => {
         dispatch(setPageTitle('Account Setting'));
-    });
-    const [tabs, setTabs] = useState<string>('home');
-    const toggleTabs = (name: string) => {
-        setTabs(name);
+        if (currentUser) {
+            setFormData({
+                firstName: currentUser.firstName || '',
+                lastName: currentUser.lastName || '',
+                email: currentUser.email || '',
+                phone: currentUser.phone || '',
+                address: currentUser.address || {
+                    street: '',
+                    city: '',
+                    state: '',
+                    zipCode: '',
+                    country: '',
+                },
+                ...(currentUser.driverProfile && {
+                    vehicleType: currentUser.driverProfile.vehicleType,
+                    vehicleNumber: currentUser.driverProfile.vehicleNumber,
+                    licenseNumber: currentUser.driverProfile.licenseNumber,
+                }),
+                ...(currentUser.restaurantProfile && {
+                    restaurantName: currentUser.restaurantProfile.restaurantName,
+                    restaurantPhone: currentUser.restaurantProfile.restaurantPhone,
+                    restaurantAddress: currentUser.restaurantProfile.restaurantAddress,
+                    openingHours: currentUser.restaurantProfile.openingHours,
+                }),
+            });
+        }
+    }, [currentUser, dispatch]);
+
+    const validateEmail = (email: string) => {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email) ? '' : 'Invalid email address';
     };
 
-    const [formData, setFormData] = useState({});
-    const [updateUserSuccess, setUpdateUserSuccess] = useState(null);
-    const [updateUserError, setUpdateUserError] = useState(null);
+    const validatePhone = (phone: string) => {
+        const re = /^\+?(\d[\d-. ]+)?(\([\d-. ]+\))?[\d-. ]+\d$/;
+        const digits = phone.replace(/\D/g, '');
+        if (!re.test(phone)) return 'Invalid phone number format';
+        if (digits.length < 10) return 'Phone number must have at least 10 digits';
+        return '';
+    };
 
     const showErrorMessage = (msg = '', type = 'error') => {
         const toast: any = Swal.mixin({
@@ -43,6 +110,7 @@ const AccountSetting = () => {
             padding: '10px 20px',
         });
     };
+
     const showSuccessMessage = (msg = '', type = 'success') => {
         const toast: any = Swal.mixin({
             toast: true,
@@ -58,34 +126,78 @@ const AccountSetting = () => {
         });
     };
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.id]: e.target.value });
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        if (name.startsWith('address.')) {
+            const field = name.split('.')[1];
+            setFormData(prev => ({
+                ...prev,
+                address: { ...prev.address, [field]: value }
+            }));
+            setErrors(prev => ({ ...prev, address: { ...prev.address, [field]: '' } }));
+        } else if (name.startsWith('restaurantAddress.')) {
+            const field = name.split('.')[1];
+            setFormData(prev => ({
+                ...prev,
+                restaurantAddress: { ...prev.restaurantAddress, [field]: value }
+            }));
+            setErrors(prev => ({ ...prev, restaurantAddress: { ...prev.restaurantAddress, [field]: '' } }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+            setErrors(prev => ({ ...prev, [name]: '' }));
+        }
+    };
+
+    const handleOpeningHoursChange = (index: number, field: 'open' | 'close', value: string) => {
+        const updatedHours = formData.openingHours.map((hour, i) =>
+            i === index ? { ...hour, [field]: value } : hour
+        );
+        setFormData(prev => ({ ...prev, openingHours: updatedHours }));
     };
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-        if (Object.keys(formData).length === 0) {
-            showErrorMessage('No changes made');
+        const validationErrors: any = {
+            email: validateEmail(formData.email),
+            phone: validatePhone(formData.phone),
+            ...(currentUser?.role === 'delivery-person' && {
+                vehicleType: !formData.vehicleType ? 'Vehicle type is required' : '',
+                vehicleNumber: !formData.vehicleNumber ? 'Vehicle number is required' : '',
+                licenseNumber: !formData.licenseNumber ? 'License number is required' : '',
+            }),
+            ...(currentUser?.role === 'restaurant-admin' && {
+                restaurantName: !formData.restaurantName ? 'Restaurant name is required' : '',
+                restaurantPhone: validatePhone(formData.restaurantPhone),
+            }),
+        };
+
+        setErrors(validationErrors);
+
+        if (Object.values(validationErrors).some(error => error !== '')) {
+            showErrorMessage('Please correct the form errors');
             return;
         }
 
         try {
             dispatch(updateStart());
-            const res = await fetch(`/api/admin/update/${currentUser && currentUser.id}`, {
+            const res = await fetch(`/api/users/profile`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify(formData),
             });
+
             const data = await res.json();
+
             if (!res.ok) {
                 dispatch(updateFailure(data.message));
-                setUpdateUserError(data.message);
+                showErrorMessage(data.message);
             } else {
                 dispatch(updateSuccess(data));
-                showSuccessMessage("User's profile updated successfully");
+                showSuccessMessage("Profile updated successfully");
             }
         } catch (error) {
             dispatch(updateFailure((error as Error).message));
@@ -98,502 +210,293 @@ const AccountSetting = () => {
             <ul className="flex space-x-2 rtl:space-x-reverse">
                 <li>
                     <Link to="#" className="text-primary hover:underline">
-                        Users
+                        Profile
                     </Link>
                 </li>
                 <li className="before:content-['/'] ltr:before:mr-2 rtl:before:ml-2">
                     <span>Account Settings</span>
                 </li>
             </ul>
+
             <div className="pt-5">
                 <div className="flex items-center justify-between mb-5">
                     <h5 className="font-semibold text-lg dark:text-white-light">Settings</h5>
                 </div>
+
                 <div>
                     <ul className="sm:flex font-semibold border-b border-[#ebedf2] dark:border-[#191e3a] mb-5 whitespace-nowrap overflow-y-auto">
                         <li className="inline-block">
                             <button
-                                onClick={() => toggleTabs('home')}
-                                className={`flex gap-2 p-4 border-b border-transparent hover:border-primary hover:text-primary ${tabs === 'home' ? '!border-primary text-primary' : ''}`}
+                                onClick={() => setTabs('profile')}
+                                className={`flex gap-2 p-4 border-b border-transparent hover:border-primary hover:text-primary ${tabs === 'profile' ? '!border-primary text-primary' : ''}`}
                             >
-                                <IconHome />
-                                Home
+                                <IconUser />
+                                Profile
                             </button>
                         </li>
-                        <li className="inline-block">
-                            <button
-                                onClick={() => toggleTabs('payment-details')}
-                                className={`flex gap-2 p-4 border-b border-transparent hover:border-primary hover:text-primary ${tabs === 'payment-details' ? '!border-primary text-primary' : ''}`}
-                            >
-                                <IconDollarSignCircle />
-                                Payment Details
-                            </button>
-                        </li>
-                        <li className="inline-block">
-                            <button
-                                onClick={() => toggleTabs('preferences')}
-                                className={`flex gap-2 p-4 border-b border-transparent hover:border-primary hover:text-primary ${tabs === 'preferences' ? '!border-primary text-primary' : ''}`}
-                            >
-                                <IconUser className="w-5 h-5" />
-                                Preferences
-                            </button>
-                        </li>
-                        <li className="inline-block">
-                            <button
-                                onClick={() => toggleTabs('danger-zone')}
-                                className={`flex gap-2 p-4 border-b border-transparent hover:border-primary hover:text-primary ${tabs === 'danger-zone' ? '!border-primary text-primary' : ''}`}
-                            >
-                                <IconPhone />
-                                Danger Zone
-                            </button>
-                        </li>
+                        {currentUser?.role === 'restaurant-admin' && (
+                            <li className="inline-block">
+                                <button
+                                    onClick={() => setTabs('restaurant')}
+                                    className={`flex gap-2 p-4 border-b border-transparent hover:border-primary hover:text-primary ${tabs === 'restaurant' ? '!border-primary text-primary' : ''}`}
+                                >
+                                    <IconHome />
+                                    Restaurant
+                                </button>
+                            </li>
+                        )}
+                        {currentUser?.role === 'delivery-person' && (
+                            <li className="inline-block">
+                                <button
+                                    onClick={() => setTabs('vehicle')}
+                                    className={`flex gap-2 p-4 border-b border-transparent hover:border-primary hover:text-primary ${tabs === 'vehicle' ? '!border-primary text-primary' : ''}`}
+                                >
+                                    <IconWheel />
+                                    Vehicle
+                                </button>
+                            </li>
+                        )}
                     </ul>
                 </div>
-                {tabs === 'home' ? (
-                    <div>
-                        <form className="border border-[#ebedf2] dark:border-[#191e3a] rounded-md p-4 mb-5 bg-white dark:bg-black" onSubmit={handleSubmit}>
-                            <h6 className="text-lg font-bold mb-5">General Information</h6>
-                            <div className="flex flex-col sm:flex-row">
-                                <div className="ltr:sm:mr-4 rtl:sm:ml-4 w-full sm:w-2/12 mb-5">
-                                    <img src="/assets//images/user-profile.jpeg" alt="img" className="w-20 h-20 md:w-32 md:h-32 rounded-full object-cover mx-auto" />
-                                </div>
-                                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                    {/* <div>
-                                        <label htmlFor="firstname">First Name</label>
-                                        <input
-                                            id="first_name"
-                                            type="text"
-                                            placeholder={currentUser && currentUser.admin.first_name}
-                                            className="form-input"
-                                            defaultValue={currentUser.admin.first_name}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="last_name">Last Name</label>
-                                        <input
-                                            id="last_name"
-                                            type="text"
-                                            placeholder={currentUser && currentUser.admin.last_name}
-                                            className="form-input"
-                                            defaultValue={currentUser.admin.last_name}
-                                            onChange={handleChange}
-                                        />
-                                    </div> */}
-                                    {/* <div>
-                                        <label htmlFor="country">Country</label>
-                                        <select defaultValue="United States" id="country" className="form-select text-white-dark">
-                                            <option value="All Countries">All Countries</option>
-                                            <option value="United States">United States</option>
-                                            <option value="India">India</option>
-                                            <option value="Japan">Japan</option>
-                                            <option value="China">China</option>
-                                            <option value="Brazil">Brazil</option>
-                                            <option value="Norway">Norway</option>
-                                            <option value="Canada">Canada</option>
-                                        </select>
-                                    </div> */}
-                                    {/* <div>
-                                        <label htmlFor="Username">Username</label>
-                                        <input
-                                            id="username"
-                                            type="text"
-                                            placeholder={currentUser && currentUser.admin.username}
-                                            className="form-input"
-                                            defaultValue={currentUser.admin.username}
-                                            onChange={handleChange}
-                                        />
-                                    </div> */}
-                                    {/* <div>
-                                        <label htmlFor="location">Location</label>
-                                        <input id="location" type="text" placeholder="Location" className="form-input" />
-                                    </div> */}
-                                    {/* <div>
-                                        <label htmlFor="phone">Phone</label>
-                                        <input id="phone_number" type="text" placeholder={currentUser && currentUser.admin.phone_number} className="form-input"
-                                        defaultValue={currentUser.admin.phone_number}
-                                        onChange={handleChange}/>
-                                    </div> */}
-                                    <div>
-                                        <label htmlFor="Email">Email</label>
-                                        <input id="email" type="text" placeholder={currentUser && currentUser.email} className="form-input" defaultValue={currentUser.email}
-                                            onChange={handleChange}/>
-                                    </div>
-                                    <div>
-                                        <label htmlFor="password">Password</label>
-                                        <input id="password" type="password" placeholder="Password" className="form-input" onChange={handleChange}/>
-                                    </div>
-                                    {/* <div>
-                                        <label className="inline-flex cursor-pointer">
-                                            <input type="checkbox" className="form-checkbox" />
-                                            <span className="text-white-dark relative checked:bg-none">Make this my default address</span>
-                                        </label>
-                                    </div> */}
-                                    <div className="sm:col-span-2 mt-3">
-                                        <button type="submit" className="btn btn-primary">
-                                            Save
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                        <form className="border border-[#ebedf2] dark:border-[#191e3a] rounded-md p-4 bg-white dark:bg-black">
-                            <h6 className="text-lg font-bold mb-5">Social</h6>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                <div className="flex">
-                                    <div className="bg-[#eee] flex justify-center items-center rounded px-3 font-semibold dark:bg-[#1b2e4b] ltr:mr-2 rtl:ml-2">
-                                        <IconLinkedin className="w-5 h-5" />
-                                    </div>
-                                    <input type="text" placeholder="jimmy_turner" className="form-input" />
-                                </div>
-                                <div className="flex">
-                                    <div className="bg-[#eee] flex justify-center items-center rounded px-3 font-semibold dark:bg-[#1b2e4b] ltr:mr-2 rtl:ml-2">
-                                        <IconTwitter className="w-5 h-5" />
-                                    </div>
-                                    <input type="text" placeholder="jimmy_turner" className="form-input" />
-                                </div>
-                                <div className="flex">
-                                    <div className="bg-[#eee] flex justify-center items-center rounded px-3 font-semibold dark:bg-[#1b2e4b] ltr:mr-2 rtl:ml-2">
-                                        <IconFacebook className="w-5 h-5" />
-                                    </div>
-                                    <input type="text" placeholder="jimmy_turner" className="form-input" />
-                                </div>
-                                <div className="flex">
-                                    <div className="bg-[#eee] flex justify-center items-center rounded px-3 font-semibold dark:bg-[#1b2e4b] ltr:mr-2 rtl:ml-2">
-                                        <IconGithub />
-                                    </div>
-                                    <input type="text" placeholder="jimmy_turner" className="form-input" />
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                ) : (
-                    ''
-                )}
-                {tabs === 'payment-details' ? (
-                    <div>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-                            <div className="panel">
-                                <div className="mb-5">
-                                    <h5 className="font-semibold text-lg mb-4">Billing Address</h5>
-                                    <p>
-                                        Changes to your <span className="text-primary">Billing</span> information will take effect starting with scheduled payment and will be refelected on your next
-                                        invoice.
-                                    </p>
-                                </div>
-                                <div className="mb-5">
-                                    <div className="border-b border-[#ebedf2] dark:border-[#1b2e4b]">
-                                        <div className="flex items-start justify-between py-3">
-                                            <h6 className="text-[#515365] font-bold dark:text-white-dark text-[15px]">
-                                                Address #1
-                                                <span className="block text-white-dark dark:text-white-light font-normal text-xs mt-1">2249 Caynor Circle, New Brunswick, New Jersey</span>
-                                            </h6>
-                                            <div className="flex items-start justify-between ltr:ml-auto rtl:mr-auto">
-                                                <button className="btn btn-dark">Edit</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="border-b border-[#ebedf2] dark:border-[#1b2e4b]">
-                                        <div className="flex items-start justify-between py-3">
-                                            <h6 className="text-[#515365] font-bold dark:text-white-dark text-[15px]">
-                                                Address #2
-                                                <span className="block text-white-dark dark:text-white-light font-normal text-xs mt-1">4262 Leverton Cove Road, Springfield, Massachusetts</span>
-                                            </h6>
-                                            <div className="flex items-start justify-between ltr:ml-auto rtl:mr-auto">
-                                                <button className="btn btn-dark">Edit</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="flex items-start justify-between py-3">
-                                            <h6 className="text-[#515365] font-bold dark:text-white-dark text-[15px]">
-                                                Address #3
-                                                <span className="block text-white-dark dark:text-white-light font-normal text-xs mt-1">2692 Berkshire Circle, Knoxville, Tennessee</span>
-                                            </h6>
-                                            <div className="flex items-start justify-between ltr:ml-auto rtl:mr-auto">
-                                                <button className="btn btn-dark">Edit</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button className="btn btn-primary">Add Address</button>
-                            </div>
-                            <div className="panel">
-                                <div className="mb-5">
-                                    <h5 className="font-semibold text-lg mb-4">Payment History</h5>
-                                    <p>
-                                        Changes to your <span className="text-primary">Payment Method</span> information will take effect starting with scheduled payment and will be refelected on your
-                                        next invoice.
-                                    </p>
-                                </div>
-                                <div className="mb-5">
-                                    <div className="border-b border-[#ebedf2] dark:border-[#1b2e4b]">
-                                        <div className="flex items-start justify-between py-3">
-                                            <div className="flex-none ltr:mr-4 rtl:ml-4">
-                                                <img src="/assets/images/card-americanexpress.svg" alt="img" />
-                                            </div>
-                                            <h6 className="text-[#515365] font-bold dark:text-white-dark text-[15px]">
-                                                Mastercard
-                                                <span className="block text-white-dark dark:text-white-light font-normal text-xs mt-1">XXXX XXXX XXXX 9704</span>
-                                            </h6>
-                                            <div className="flex items-start justify-between ltr:ml-auto rtl:mr-auto">
-                                                <button className="btn btn-dark">Edit</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="border-b border-[#ebedf2] dark:border-[#1b2e4b]">
-                                        <div className="flex items-start justify-between py-3">
-                                            <div className="flex-none ltr:mr-4 rtl:ml-4">
-                                                <img src="/assets/images/card-mastercard.svg" alt="img" />
-                                            </div>
-                                            <h6 className="text-[#515365] font-bold dark:text-white-dark text-[15px]">
-                                                American Express
-                                                <span className="block text-white-dark dark:text-white-light font-normal text-xs mt-1">XXXX XXXX XXXX 310</span>
-                                            </h6>
-                                            <div className="flex items-start justify-between ltr:ml-auto rtl:mr-auto">
-                                                <button className="btn btn-dark">Edit</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div className="flex items-start justify-between py-3">
-                                            <div className="flex-none ltr:mr-4 rtl:ml-4">
-                                                <img src="/assets/images/card-visa.svg" alt="img" />
-                                            </div>
-                                            <h6 className="text-[#515365] font-bold dark:text-white-dark text-[15px]">
-                                                Visa
-                                                <span className="block text-white-dark dark:text-white-light font-normal text-xs mt-1">XXXX XXXX XXXX 5264</span>
-                                            </h6>
-                                            <div className="flex items-start justify-between ltr:ml-auto rtl:mr-auto">
-                                                <button className="btn btn-dark">Edit</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button className="btn btn-primary">Add Payment Method</button>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                            <div className="panel">
-                                <div className="mb-5">
-                                    <h5 className="font-semibold text-lg mb-4">Add Billing Address</h5>
-                                    <p>
-                                        Changes your New <span className="text-primary">Billing</span> Information.
-                                    </p>
-                                </div>
-                                <div className="mb-5">
-                                    <form>
-                                        <div className="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div>
-                                                <label htmlFor="billingName">Name</label>
-                                                <input id="billingName" type="text" placeholder="Enter Name" className="form-input" />
-                                            </div>
-                                            <div>
-                                                <label htmlFor="billingEmail">Email</label>
-                                                <input id="billingEmail" type="email" placeholder="Enter Email" className="form-input" />
-                                            </div>
-                                        </div>
-                                        <div className="mb-5">
-                                            <label htmlFor="billingAddress">Address</label>
-                                            <input id="billingAddress" type="text" placeholder="Enter Address" className="form-input" />
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-5">
-                                            <div className="md:col-span-2">
-                                                <label htmlFor="billingCity">City</label>
-                                                <input id="billingCity" type="text" placeholder="Enter City" className="form-input" />
-                                            </div>
-                                            <div>
-                                                <label htmlFor="billingState">State</label>
-                                                <select id="billingState" className="form-select text-white-dark">
-                                                    <option>Choose...</option>
-                                                    <option>...</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label htmlFor="billingZip">Zip</label>
-                                                <input id="billingZip" type="text" placeholder="Enter Zip" className="form-input" />
-                                            </div>
-                                        </div>
-                                        <button type="button" className="btn btn-primary">
-                                            Add
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                            <div className="panel">
-                                <div className="mb-5">
-                                    <h5 className="font-semibold text-lg mb-4">Add Payment Method</h5>
-                                    <p>
-                                        Changes your New <span className="text-primary">Payment Method </span>
-                                        Information.
-                                    </p>
-                                </div>
-                                <div className="mb-5">
-                                    <form>
-                                        <div className="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div>
-                                                <label htmlFor="payBrand">Card Brand</label>
-                                                <select id="payBrand" className="form-select text-white-dark">
-                                                    <option value="Mastercard">Mastercard</option>
-                                                    <option value="American Express">American Express</option>
-                                                    <option value="Visa">Visa</option>
-                                                    <option value="Discover">Discover</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label htmlFor="payNumber">Card Number</label>
-                                                <input id="payNumber" type="text" placeholder="Card Number" className="form-input" />
-                                            </div>
-                                        </div>
-                                        <div className="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div>
-                                                <label htmlFor="payHolder">Holder Name</label>
-                                                <input id="payHolder" type="text" placeholder="Holder Name" className="form-input" />
-                                            </div>
-                                            <div>
-                                                <label htmlFor="payCvv">CVV/CVV2</label>
-                                                <input id="payCvv" type="text" placeholder="CVV" className="form-input" />
-                                            </div>
-                                        </div>
-                                        <div className="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div>
-                                                <label htmlFor="payExp">Card Expiry</label>
-                                                <input id="payExp" type="text" placeholder="Card Expiry" className="form-input" />
-                                            </div>
-                                        </div>
-                                        <button type="button" className="btn btn-primary">
-                                            Add
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    ''
-                )}
-                {tabs === 'preferences' ? (
-                    <div className="switch">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-                            <div className="panel space-y-5">
-                                <h5 className="font-semibold text-lg mb-4">Choose Theme</h5>
-                                <div className="flex justify-around">
-                                    <div className="flex">
-                                        <label className="inline-flex cursor-pointer">
-                                            <input className="form-radio ltr:mr-4 rtl:ml-4 cursor-pointer" type="radio" name="flexRadioDefault" defaultChecked />
-                                            <span>
-                                                <img className="ms-3" width="100" height="68" alt="settings-dark" src="/assets/images/settings-light.svg" />
-                                            </span>
-                                        </label>
-                                    </div>
 
-                                    <label className="inline-flex cursor-pointer">
-                                        <input className="form-radio ltr:mr-4 rtl:ml-4 cursor-pointer" type="radio" name="flexRadioDefault" />
-                                        <span>
-                                            <img className="ms-3" width="100" height="68" alt="settings-light" src="/assets/images/settings-dark.svg" />
-                                        </span>
-                                    </label>
-                                </div>
+                {tabs === 'profile' && (
+                    <form className="border border-[#ebedf2] dark:border-[#191e3a] rounded-md p-4 mb-5 bg-white dark:bg-black" onSubmit={handleSubmit}>
+                        <h6 className="text-lg font-bold mb-5">Personal Information</h6>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label htmlFor="firstName">First Name</label>
+                                <input
+                                    id="firstName"
+                                    name="firstName"
+                                    type="text"
+                                    className="form-input"
+                                    value={formData.firstName}
+                                    onChange={handleChange}
+                                />
+                                {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
                             </div>
-                            <div className="panel space-y-5">
-                                <h5 className="font-semibold text-lg mb-4">Activity data</h5>
-                                <p>Download your Summary, Task and Payment History Data</p>
-                                <button type="button" className="btn btn-primary">
-                                    Download Data
+                            <div>
+                                <label htmlFor="lastName">Last Name</label>
+                                <input
+                                    id="lastName"
+                                    name="lastName"
+                                    type="text"
+                                    className="form-input"
+                                    value={formData.lastName}
+                                    onChange={handleChange}
+                                />
+                                {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
+                            </div>
+                            <div>
+                                <label htmlFor="email">Email</label>
+                                <input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    className="form-input"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                />
+                                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                            </div>
+                            <div>
+                                <label htmlFor="phone">Phone</label>
+                                <input
+                                    id="phone"
+                                    name="phone"
+                                    type="text"
+                                    className="form-input"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                />
+                                {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+                            </div>
+                            <div className="sm:col-span-2">
+                                <button type="submit" className="btn btn-primary">
+                                    Save Changes
                                 </button>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                            <div className="panel space-y-5">
-                                <h5 className="font-semibold text-lg mb-4">Public Profile</h5>
-                                <p>
-                                    Your <span className="text-primary">Profile</span> will be visible to anyone on the network.
-                                </p>
-                                <label className="w-12 h-6 relative">
-                                    <input type="checkbox" className="custom_switch absolute w-full h-full opacity-0 z-10 cursor-pointer peer" id="custom_switch_checkbox1" />
-                                    <span className="bg-[#ebedf2] dark:bg-dark block h-full rounded-full before:absolute before:left-1 before:bg-white dark:before:bg-white-dark dark:peer-checked:before:bg-white before:bottom-1 before:w-4 before:h-4 before:rounded-full peer-checked:before:left-7 peer-checked:bg-primary before:transition-all before:duration-300"></span>
-                                </label>
-                            </div>
-                            <div className="panel space-y-5">
-                                <h5 className="font-semibold text-lg mb-4">Show my email</h5>
-                                <p>
-                                    Your <span className="text-primary">Email</span> will be visible to anyone on the network.
-                                </p>
-                                <label className="w-12 h-6 relative">
-                                    <input type="checkbox" className="custom_switch absolute w-full h-full opacity-0 z-10 cursor-pointer peer" id="custom_switch_checkbox2" />
-                                    <span className="bg-[#ebedf2] dark:bg-dark block h-full rounded-full before:absolute before:left-1 before:bg-white  dark:before:bg-white-dark dark:peer-checked:before:bg-white before:bottom-1 before:w-4 before:h-4 before:rounded-full peer-checked:before:left-7 peer-checked:bg-primary before:transition-all before:duration-300"></span>
-                                </label>
-                            </div>
-                            <div className="panel space-y-5">
-                                <h5 className="font-semibold text-lg mb-4">Enable keyboard shortcuts</h5>
-                                <p>
-                                    When enabled, press <span className="text-primary">ctrl</span> for help
-                                </p>
-                                <label className="w-12 h-6 relative">
-                                    <input type="checkbox" className="custom_switch absolute w-full h-full opacity-0 z-10 cursor-pointer peer" id="custom_switch_checkbox3" />
-                                    <span className="bg-[#ebedf2] dark:bg-dark block h-full rounded-full before:absolute before:left-1 before:bg-white  dark:before:bg-white-dark dark:peer-checked:before:bg-white before:bottom-1 before:w-4 before:h-4 before:rounded-full peer-checked:before:left-7 peer-checked:bg-primary before:transition-all before:duration-300"></span>
-                                </label>
-                            </div>
-                            <div className="panel space-y-5">
-                                <h5 className="font-semibold text-lg mb-4">Hide left navigation</h5>
-                                <p>
-                                    Sidebar will be <span className="text-primary">hidden</span> by default
-                                </p>
-                                <label className="w-12 h-6 relative">
-                                    <input type="checkbox" className="custom_switch absolute w-full h-full opacity-0 z-10 cursor-pointer peer" id="custom_switch_checkbox4" />
-                                    <span className="bg-[#ebedf2] dark:bg-dark block h-full rounded-full before:absolute before:left-1 before:bg-white  dark:before:bg-white-dark dark:peer-checked:before:bg-white before:bottom-1 before:w-4 before:h-4 before:rounded-full peer-checked:before:left-7 peer-checked:bg-primary before:transition-all before:duration-300"></span>
-                                </label>
-                            </div>
-                            <div className="panel space-y-5">
-                                <h5 className="font-semibold text-lg mb-4">Advertisements</h5>
-                                <p>
-                                    Display <span className="text-primary">Ads</span> on your dashboard
-                                </p>
-                                <label className="w-12 h-6 relative">
-                                    <input type="checkbox" className="custom_switch absolute w-full h-full opacity-0 z-10 cursor-pointer peer" id="custom_switch_checkbox5" />
-                                    <span className="bg-[#ebedf2] dark:bg-dark block h-full rounded-full before:absolute before:left-1 before:bg-white  dark:before:bg-white-dark dark:peer-checked:before:bg-white before:bottom-1 before:w-4 before:h-4 before:rounded-full peer-checked:before:left-7 peer-checked:bg-primary before:transition-all before:duration-300"></span>
-                                </label>
-                            </div>
-                            <div className="panel space-y-5">
-                                <h5 className="font-semibold text-lg mb-4">Social Profile</h5>
-                                <p>
-                                    Enable your <span className="text-primary">social</span> profiles on this network
-                                </p>
-                                <label className="w-12 h-6 relative">
-                                    <input type="checkbox" className="custom_switch absolute w-full h-full opacity-0 z-10 cursor-pointer peer" id="custom_switch_checkbox6" />
-                                    <span className="bg-[#ebedf2] dark:bg-dark block h-full rounded-full before:absolute before:left-1 before:bg-white  dark:before:bg-white-dark dark:peer-checked:before:bg-white before:bottom-1 before:w-4 before:h-4 before:rounded-full peer-checked:before:left-7 peer-checked:bg-primary before:transition-all before:duration-300"></span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    ''
+                    </form>
                 )}
-                {tabs === 'danger-zone' ? (
-                    <div className="switch">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                            <div className="panel space-y-5">
-                                <h5 className="font-semibold text-lg mb-4">Purge Cache</h5>
-                                <p>Remove the active resource from the cache without waiting for the predetermined cache expiry time.</p>
-                                <button className="btn btn-secondary">Clear</button>
+
+                {tabs === 'restaurant' && currentUser?.role === 'restaurant-admin' && (
+                    <form className="border border-[#ebedf2] dark:border-[#191e3a] rounded-md p-4 mb-5 bg-white dark:bg-black" onSubmit={handleSubmit}>
+                        <h6 className="text-lg font-bold mb-5">Restaurant Information</h6>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label htmlFor="restaurantName">Restaurant Name</label>
+                                <input
+                                    id="restaurantName"
+                                    name="restaurantName"
+                                    type="text"
+                                    className="form-input"
+                                    value={formData.restaurantName}
+                                    onChange={handleChange}
+                                />
+                                {errors.restaurantName && <p className="text-red-500 text-sm mt-1">{errors.restaurantName}</p>}
                             </div>
-                            <div className="panel space-y-5">
-                                <h5 className="font-semibold text-lg mb-4">Deactivate Account</h5>
-                                <p>You will not be able to receive messages, notifications for up to 24 hours.</p>
-                                <label className="w-12 h-6 relative">
-                                    <input type="checkbox" className="custom_switch absolute w-full h-full opacity-0 z-10 cursor-pointer peer" id="custom_switch_checkbox7" />
-                                    <span className="bg-[#ebedf2] dark:bg-dark block h-full rounded-full before:absolute before:left-1 before:bg-white dark:before:bg-white-dark dark:peer-checked:before:bg-white before:bottom-1 before:w-4 before:h-4 before:rounded-full peer-checked:before:left-7 peer-checked:bg-primary before:transition-all before:duration-300"></span>
-                                </label>
+                            <div>
+                                <label htmlFor="restaurantPhone">Restaurant Phone</label>
+                                <input
+                                    id="restaurantPhone"
+                                    name="restaurantPhone"
+                                    type="text"
+                                    className="form-input"
+                                    value={formData.restaurantPhone}
+                                    onChange={handleChange}
+                                />
+                                {errors.restaurantPhone && <p className="text-red-500 text-sm mt-1">{errors.restaurantPhone}</p>}
                             </div>
-                            <div className="panel space-y-5">
-                                <h5 className="font-semibold text-lg mb-4">Delete Account</h5>
-                                <p>Once you delete the account, there is no going back. Please be certain.</p>
-                                <button className="btn btn-danger btn-delete-account">Delete my account</button>
+                            {/* Add restaurant address fields here */}
+                            <div>
+                                <label htmlFor="restaurantAddress.street">Street</label>
+                                <input
+                                    id="restaurantAddress.street"
+                                    name="restaurantAddress.street"
+                                    type="text"
+                                    className="form-input"
+                                    value={formData.restaurantAddress.street}
+                                    onChange={handleChange}
+                                />
+                                {errors.restaurantAddress?.street && <p className="text-red-500 text-sm mt-1">{errors.restaurantAddress.street}</p>}
+                            </div>
+                            <div>
+                                <label htmlFor="restaurantAddress.city">City</label>
+                                <input
+                                    id="restaurantAddress.city"
+                                    name="restaurantAddress.city"
+                                    type="text"
+                                    className="form-input"
+                                    value={formData.restaurantAddress.city}
+                                    onChange={handleChange}
+                                />
+                                {errors.restaurantAddress?.city && <p className="text-red-500 text-sm mt-1">{errors.restaurantAddress.city}</p>}
+                            </div>
+                            <div>
+                                <label htmlFor="restaurantAddress.state">State</label>
+                                <input
+                                    id="restaurantAddress.state"
+                                    name="restaurantAddress.state"
+                                    type="text"
+                                    className="form-input"
+                                    value={formData.restaurantAddress.state}
+                                    onChange={handleChange}
+                                />
+                                {errors.restaurantAddress?.state && <p className="text-red-500 text-sm mt-1">{errors.restaurantAddress.state}</p>}
+                            </div>
+                            <div>
+                                <label htmlFor="restaurantAddress.zipCode">Zip Code</label>
+                                <input
+                                    id="restaurantAddress.zipCode"
+                                    name="restaurantAddress.zipCode"
+                                    type="text"
+                                    className="form-input"
+                                    value={formData.restaurantAddress.zipCode}
+                                    onChange={handleChange}
+                                />
+                                {errors.restaurantAddress?.zipCode && <p className="text-red-500 text-sm mt-1">{errors.restaurantAddress.zipCode}</p>}
+                            </div>
+                            <div>
+                                <label htmlFor="restaurantAddress.country">Country</label>
+                                <input
+                                    id="restaurantAddress.country"
+                                    name="restaurantAddress.country"
+                                    type="text"
+                                    className="form-input"
+                                    value={formData.restaurantAddress.country}
+                                    onChange={handleChange}
+                                />
+                                {errors.restaurantAddress?.country && <p className="text-red-500 text-sm mt-1">{errors.restaurantAddress.country}</p>}
+                            </div>
+                            <div>
+                                <label htmlFor="openingHours">Opening Hours</label>
+                                {formData.openingHours.map((hour, index) => (
+                                    <div key={index} className="flex gap-2 mb-2">
+                                        <input
+                                            type="time"
+                                            value={hour.open}
+                                            onChange={(e) => handleOpeningHoursChange(index, 'open', e.target.value)}
+                                            className="form-input"
+                                        />
+                                        <input
+                                            type="time"
+                                            value={hour.close}
+                                            onChange={(e) => handleOpeningHoursChange(index, 'close', e.target.value)}
+                                            className="form-input"
+                                        />
+                                    </div>
+                                ))}
+                                {/* <button
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, openingHours: [...prev.openingHours, { open: '', close: '' }] }))}
+                                    className="btn btn-secondary"
+                                >
+                                    Add Opening Hour
+                                </button> */}
+                                {errors.openingHours && <p className="text-red-500 text-sm mt-1">{errors.openingHours}</p>}
+                            </div>
+
+
+                            <div className="sm:col-span-2">
+                                <button type="submit" className="btn btn-primary">
+                                    Save Changes
+                                </button>
                             </div>
                         </div>
-                    </div>
-                ) : (
-                    ''
+                    </form>
+                )}
+
+                {tabs === 'vehicle' && currentUser?.role === 'delivery-person' && (
+                    <form className="border border-[#ebedf2] dark:border-[#191e3a] rounded-md p-4 mb-5 bg-white dark:bg-black" onSubmit={handleSubmit}>
+                        <h6 className="text-lg font-bold mb-5">Vehicle Information</h6>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label htmlFor="vehicleType">Vehicle Type</label>
+                                <select
+                                    id="vehicleType"
+                                    name="vehicleType"
+                                    className="form-select"
+                                    value={formData.vehicleType}
+                                    onChange={handleChange}
+                                >
+                                    <option value="">Select Vehicle Type</option>
+                                    <option value="bike">Bike</option>
+                                    <option value="three-wheeler">Three Wheeler</option>
+                                </select>
+                                {errors.vehicleType && <p className="text-red-500 text-sm mt-1">{errors.vehicleType}</p>}
+                            </div>
+                            <div>
+                                <label htmlFor="vehicleNumber">Vehicle Number</label>
+                                <input
+                                    id="vehicleNumber"
+                                    name="vehicleNumber"
+                                    type="text"
+                                    className="form-input"
+                                    value={formData.vehicleNumber}
+                                    onChange={handleChange}
+                                />
+                                {errors.vehicleNumber && <p className="text-red-500 text-sm mt-1">{errors.vehicleNumber}</p>}
+                            </div>
+                            <div>
+                                <label htmlFor="licenseNumber">License Number</label>
+                                <input
+                                    id="licenseNumber"
+                                    name="licenseNumber"
+                                    type="text"
+                                    className="form-input"
+                                    value={formData.licenseNumber}
+                                    onChange={handleChange}
+                                />
+                                {errors.licenseNumber && <p className="text-red-500 text-sm mt-1">{errors.licenseNumber}</p>}
+                            </div>
+                            <div className="sm:col-span-2">
+                                <button type="submit" className="btn btn-primary">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 )}
             </div>
         </div>
