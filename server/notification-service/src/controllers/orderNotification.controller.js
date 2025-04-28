@@ -2,7 +2,7 @@
 
 const { sendSMS } = require('../services/sms.service');
 const { sendEmail } = require('../services/email.service');
-const { broadcastOrderCompletion } = require('../websocket/wsServer');
+const { broadcastOrderCancellation } = require('../websocket/wsServer');  // <-- Correct import path
 
 const sendOrderConfirmation = async (customerEmail, customerPhone, orderDetails) => {
   const emailData = {
@@ -23,30 +23,56 @@ const sendOrderConfirmation = async (customerEmail, customerPhone, orderDetails)
 };
 
 const sendOrderCompleteNotification = async (customerEmail, customerPhone, orderDetails) => {
-    const emailData = {
-      customerName: orderDetails.customerName,  // Dynamic customer name
-      orderId: orderDetails.orderId,            // Dynamic order ID
-      orderItems: orderDetails.items.join(', ') // Join items array into a string for the email
-    };
-  
-    const smsText = `Your order ${orderDetails.orderId} has been delivered successfully. Thank you!`;
-  
-    try {
-      // Send SMS to customer
-      await sendSMS(customerPhone, smsText);
-  
-      // Send Email to customer with dynamic data
-      await sendEmail(customerEmail, 'Order Delivered Successfully', 'order-completion', emailData);
-  
-      // Broadcast real-time notification to delivery personnel (WebSocket)
-      broadcastOrderCompletion(orderDetails);  // <-- This will now work
-  
-      return { success: true, message: 'Order completion notifications sent successfully' };
-    } catch (error) {
-      console.error('Error sending order completion notifications:', error);
-      return { success: false, message: 'Failed to send order completion notifications' };
-    }
+  const emailData = {
+    customerName: orderDetails.customerName,  // Dynamic customer name
+    orderId: orderDetails.orderId,            // Dynamic order ID
+    orderItems: orderDetails.items.join(', ') // Join items array into a string for the email
   };
-  
 
-module.exports = { sendOrderConfirmation, sendOrderCompleteNotification };
+  const smsText = `Your order ${orderDetails.orderId} has been delivered successfully. Thank you!`;
+
+  try {
+    // Send SMS to customer
+    await sendSMS(customerPhone, smsText);
+
+    // Send Email to customer with dynamic data
+    await sendEmail(customerEmail, 'Order Delivered Successfully', 'order-completion', emailData);
+
+    // Broadcast real-time notification to delivery personnel (WebSocket)
+    broadcastOrderCompletion(orderDetails);  // <-- This will now work
+
+    return { success: true, message: 'Order completion notifications sent successfully' };
+  } catch (error) {
+    console.error('Error sending order completion notifications:', error);
+    return { success: false, message: 'Failed to send order completion notifications' };
+  }
+};
+
+const sendOrderCancellationNotification = async (customerEmail, customerPhone, orderDetails, canceledBy) => {
+  const emailData = {
+    customerName: orderDetails.customerName,
+    orderId: orderDetails.orderId,
+    canceledBy: canceledBy,  // "customer" or "restaurant"
+    orderItems: orderDetails.items.join(', ')  // Convert the array to a comma-separated string
+  };
+
+  const smsText = `Your order #${orderDetails.orderId} has been canceled by ${canceledBy}.`;
+
+  try {
+    // Send SMS to customer
+    await sendSMS(customerPhone, smsText);
+
+    // Send Email to customer
+    await sendEmail(customerEmail, 'Order Canceled', 'order-canceled', emailData);
+
+    // Broadcast the cancellation to the restaurant (WebSocket)
+    broadcastOrderCancellation(orderDetails);  // <-- This will now work
+
+    return { success: true, message: 'Order cancellation notifications sent successfully' };
+  } catch (error) {
+    console.error('Error sending order cancellation notifications:', error);
+    return { success: false, message: 'Failed to send order cancellation notifications' };
+  }
+};
+
+module.exports = { sendOrderConfirmation, sendOrderCompleteNotification, sendOrderCancellationNotification };
