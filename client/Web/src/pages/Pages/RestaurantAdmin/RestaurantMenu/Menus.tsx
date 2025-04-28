@@ -22,7 +22,9 @@ const Menus = () => {
     const [paginatedData, setPaginatedData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState<string>('');
 
     const [selectedItem, setSelectedItem] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -86,6 +88,7 @@ const Menus = () => {
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value.toLowerCase();
         setSearchTerm(value);
+        filterMenuItems(value, selectedCategory);
 
         const filtered = menuItems.filter(
             (item) =>
@@ -99,6 +102,34 @@ const Menus = () => {
 
         setFilteredMenuItems(filtered);
         setPage(1);
+    };
+
+    const filterMenuItems = (searchValue: string, category: string) => {
+        let filtered = menuItems;
+
+        if (category) {
+            filtered = filtered.filter((item) => item.category === category);
+        }
+
+        if (searchValue) {
+            filtered = filtered.filter(
+                (item) =>
+                    item.name.toLowerCase().includes(searchValue) ||
+                    item.category?.toLowerCase().includes(searchValue) ||
+                    item.description?.toLowerCase().includes(searchValue) ||
+                    item.ingredients?.some((ingredient: string) => ingredient.toLowerCase().includes(searchValue)) ||
+                    item.dietaryTags?.some((tag: string) => tag.toLowerCase().includes(searchValue)) ||
+                    item.spicyLevel?.toLowerCase().includes(searchValue)
+            );
+        }
+
+        setFilteredMenuItems(filtered);
+        setPage(1);
+    };
+
+    const handleCategoryFilter = (category: string) => {
+        setSelectedCategory(category);
+        filterMenuItems(searchTerm, category);
     };
 
     useEffect(() => {
@@ -117,17 +148,32 @@ const Menus = () => {
 
     return (
         <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-6 gap-4 flex-wrap">
                 <Link to="/create-menu">
                     <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200">Create New Menu Item</button>
                 </Link>
-                <input
-                    type="text"
-                    placeholder="Search menu items..."
-                    value={searchTerm}
-                    onChange={handleSearch}
-                    className="border border-gray-300 dark:border-gray-600 rounded-md p-2 w-64 dark:bg-gray-700 dark:text-white"
-                />
+                <div className="flex items-center gap-4">
+                    <select
+                        value={selectedCategory}
+                        onChange={(e) => handleCategoryFilter(e.target.value)}
+                        className="border border-gray-300 dark:border-gray-600 rounded-md p-2 dark:bg-gray-700 dark:text-white"
+                    >
+                        <option value="">All Categories</option>
+                        <option value="Appetizers">Appetizers</option>
+                        <option value="Main Course">Main Course</option>
+                        <option value="Desserts">Desserts</option>
+                        <option value="Beverages">Beverages</option>
+                        <option value="Sides">Sides</option>
+                    </select>
+
+                    <input
+                        type="text"
+                        placeholder="Search menu items..."
+                        value={searchTerm}
+                        onChange={handleSearch}
+                        className="border border-gray-300 dark:border-gray-600 rounded-md p-2 w-64 dark:bg-gray-700 dark:text-white"
+                    />
+                </div>
             </div>
 
             {filteredMenuItems.length === 0 ? (
