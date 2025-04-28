@@ -6,11 +6,11 @@ import { getOrderByRestaurantId, updateOrderStatus } from '../../../../services/
 import Loader from '../../../Components/Loader';
 import Swal from 'sweetalert2';
 
-const UnApprovedOrder = () => {
+const ApprovedOrder = () => {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(setPageTitle('Pending Orders'));
+        dispatch(setPageTitle('Approved Orders'));
     }, [dispatch]);
 
     const [page, setPage] = useState(1);
@@ -41,13 +41,13 @@ const UnApprovedOrder = () => {
             try {
                 setLoading(true);
                 const data = await getOrderByRestaurantId();
-                // Filter for pending orders only
-                const pendingOrders = data.filter((order: any) => order.status === 'pending');
-                setRecordsData(pendingOrders);
+                // Filter for confirmed orders only
+                const confirmedOrders = data.filter((order: any) => order.status === 'confirmed');
+                setRecordsData(confirmedOrders);
                 setError(null);
             } catch (error) {
                 console.error('Error fetching orders:', error);
-                setError('Failed to load pending orders. Please try again later.');
+                setError('Failed to load approved orders. Please try again later.');
             } finally {
                 setLoading(false);
             }
@@ -79,10 +79,10 @@ const UnApprovedOrder = () => {
     return (
         <div>
             <div className="panel mt-6">
-                <h5 className="font-semibold text-lg dark:text-white-light mb-5">Pending Orders</h5>
+                <h5 className="font-semibold text-lg dark:text-white-light mb-5">Approved Orders</h5>
                 <div className="datatables">
                     <DataTable
-                        noRecordsText="No pending orders found"
+                        noRecordsText="No approved orders found"
                         highlightOnHover
                         className="whitespace-nowrap table-hover"
                         records={paginatedData}
@@ -139,13 +139,14 @@ const UnApprovedOrder = () => {
                                     <div className="flex items-center gap-4">
                                         <select
                                             value={status}
+                                            placeholder="Select Status"
                                             onChange={async (e) => {
                                                 const newStatus = e.target.value;
                                                 try {
                                                     await updateOrderStatus(_id, { status: newStatus });
                                                     showMessage('Status updated successfully!', 'success');
                                                     setRecordsData((prev) =>
-                                                        prev.map((order) => (order._id === _id ? { ...order, status: newStatus } : order)).filter((order) => order.status === 'pending')
+                                                        prev.map((order) => (order._id === _id ? { ...order, status: newStatus } : order)).filter((order) => order.status === 'confirmed')
                                                     );
                                                 } catch (error) {
                                                     console.error('Failed to update status:', error);
@@ -154,9 +155,8 @@ const UnApprovedOrder = () => {
                                             }}
                                             className="border rounded p-1 dark:bg-gray-700 dark:text-white"
                                         >
-                                            <option value="pending">Pending</option>
-                                            <option value="confirmed">Confirmed</option>
-                                            <option value="reject">Rejected</option>
+                                            <option value="preparing">Preparing</option>
+                                            <option value="out_for_delivery">Out for Delivery</option>
                                         </select>
                                     </div>
                                 ),
@@ -177,4 +177,4 @@ const UnApprovedOrder = () => {
     );
 };
 
-export default UnApprovedOrder;
+export default ApprovedOrder;

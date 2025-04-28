@@ -2,15 +2,15 @@ import { DataTable } from 'mantine-datatable';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { setPageTitle } from '../../../../store/themeConfigSlice';
-import { getOrderByRestaurantId, updateOrderStatus } from '../../../../services/order/order';
+import { getOrderByRestaurantId } from '../../../../services/order/order';
 import Loader from '../../../Components/Loader';
 import Swal from 'sweetalert2';
 
-const UnApprovedOrder = () => {
+const CompleteOrder = () => {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(setPageTitle('Pending Orders'));
+        dispatch(setPageTitle('Out for Delivery Orders'));
     }, [dispatch]);
 
     const [page, setPage] = useState(1);
@@ -41,13 +41,13 @@ const UnApprovedOrder = () => {
             try {
                 setLoading(true);
                 const data = await getOrderByRestaurantId();
-                // Filter for pending orders only
-                const pendingOrders = data.filter((order: any) => order.status === 'pending');
-                setRecordsData(pendingOrders);
+                // Filter for out_for_delivery orders only
+                const deliveryOrders = data.filter((order: any) => order.status === 'out_for_delivery');
+                setRecordsData(deliveryOrders);
                 setError(null);
             } catch (error) {
                 console.error('Error fetching orders:', error);
-                setError('Failed to load pending orders. Please try again later.');
+                setError('Failed to load out for delivery orders. Please try again later.');
             } finally {
                 setLoading(false);
             }
@@ -79,10 +79,10 @@ const UnApprovedOrder = () => {
     return (
         <div>
             <div className="panel mt-6">
-                <h5 className="font-semibold text-lg dark:text-white-light mb-5">Pending Orders</h5>
+                <h5 className="font-semibold text-lg dark:text-white-light mb-5">Out for Delivery Orders</h5>
                 <div className="datatables">
                     <DataTable
-                        noRecordsText="No pending orders found"
+                        noRecordsText="No out for delivery orders found"
                         highlightOnHover
                         className="whitespace-nowrap table-hover"
                         records={paginatedData}
@@ -135,29 +135,9 @@ const UnApprovedOrder = () => {
                             {
                                 accessor: 'status',
                                 title: 'Status',
-                                render: ({ _id, status }) => (
+                                render: ({ status }) => (
                                     <div className="flex items-center gap-4">
-                                        <select
-                                            value={status}
-                                            onChange={async (e) => {
-                                                const newStatus = e.target.value;
-                                                try {
-                                                    await updateOrderStatus(_id, { status: newStatus });
-                                                    showMessage('Status updated successfully!', 'success');
-                                                    setRecordsData((prev) =>
-                                                        prev.map((order) => (order._id === _id ? { ...order, status: newStatus } : order)).filter((order) => order.status === 'pending')
-                                                    );
-                                                } catch (error) {
-                                                    console.error('Failed to update status:', error);
-                                                    showMessage('Failed to update status. Try again.', 'error');
-                                                }
-                                            }}
-                                            className="border rounded p-1 dark:bg-gray-700 dark:text-white"
-                                        >
-                                            <option value="pending">Pending</option>
-                                            <option value="confirmed">Confirmed</option>
-                                            <option value="reject">Rejected</option>
-                                        </select>
+                                        <span className="font-semibold text-blue-500">{status.replace(/_/g, ' ').toUpperCase()}</span>
                                     </div>
                                 ),
                             },
@@ -177,4 +157,4 @@ const UnApprovedOrder = () => {
     );
 };
 
-export default UnApprovedOrder;
+export default CompleteOrder;
