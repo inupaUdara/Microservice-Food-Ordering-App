@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import { getAllMenuItems } from '../../../../services/restaurant/restaurant';
 import { getImageById } from '../../../../services/upload/upload';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom'; // Add useNavigate
 import { setPageTitle } from '../../../../store/themeConfigSlice';
 import { DataTable } from 'mantine-datatable';
 import { useDispatch } from 'react-redux';
-import Swal from 'sweetalert2';
 import { Eye, Pencil, Trash2 } from 'lucide-react';
-import Loader from '../../..//Components/Loader';
+import Loader from '../../../Components/Loader';
 import MenuModel from './MenuModel';
 
 const Menus = () => {
     const dispatch = useDispatch();
     const { id } = useParams();
+    const navigate = useNavigate(); // Initialize useNavigate
 
     const [page, setPage] = useState(1);
     const PAGE_SIZES = [10, 20, 30, 50, 100];
@@ -24,6 +24,7 @@ const Menus = () => {
     const [error, setError] = useState<string | null>(null);
 
     const [searchTerm, setSearchTerm] = useState('');
+    //const pathPrefix = id ? `/restaurants/${id}` : '';
     const [selectedCategory, setSelectedCategory] = useState<string>('');
 
     const [selectedItem, setSelectedItem] = useState<any>(null);
@@ -32,21 +33,6 @@ const Menus = () => {
     useEffect(() => {
         dispatch(setPageTitle('Menu Items'));
     }, [dispatch]);
-
-    const showMessage = (msg = '', type = 'error') => {
-        const toast: any = Swal.mixin({
-            toast: true,
-            position: 'top',
-            showConfirmButton: false,
-            timer: 3000,
-            customClass: { container: 'toast' },
-        });
-        toast.fire({
-            icon: type,
-            title: msg,
-            padding: '10px 20px',
-        });
-    };
 
     useEffect(() => {
         const fetchMenuItems = async () => {
@@ -89,19 +75,6 @@ const Menus = () => {
         const value = e.target.value.toLowerCase();
         setSearchTerm(value);
         filterMenuItems(value, selectedCategory);
-
-        const filtered = menuItems.filter(
-            (item) =>
-                item.name.toLowerCase().includes(value) ||
-                item.category?.toLowerCase().includes(value) ||
-                item.description?.toLowerCase().includes(value) ||
-                item.ingredients?.some((ingredient: string) => ingredient.toLowerCase().includes(value)) ||
-                item.dietaryTags?.some((tag: string) => tag.toLowerCase().includes(value)) ||
-                item.spicyLevel?.toLowerCase().includes(value)
-        );
-
-        setFilteredMenuItems(filtered);
-        setPage(1);
     };
 
     const filterMenuItems = (searchValue: string, category: string) => {
@@ -143,13 +116,22 @@ const Menus = () => {
         setIsModalOpen(true);
     };
 
+    const handleEditItem = (item: any) => {
+        // if (!id || !item._id) {
+        //     console.error('Missing restaurant ID or menu item ID', { menuId: item._id });
+        //     return;
+        // }
+        console.log('Navigating to:', `/edit-menu/${item._id}`);
+        navigate(`/edit-menu/${item._id}`);
+    };
+
     if (loading) return <Loader />;
     if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
 
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-6 gap-4 flex-wrap">
-                <Link to="/create-menu">
+                <Link to={'/create-menu'}>
                     <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200">Create New Menu Item</button>
                 </Link>
                 <div className="flex items-center gap-4">
@@ -235,7 +217,7 @@ const Menus = () => {
                                                 <button title="View" onClick={() => handleViewItem(item)}>
                                                     <Eye size={20} className="text-blue-500 hover:text-blue-700 cursor-pointer" />
                                                 </button>
-                                                <button title="Edit">
+                                                <button title="Edit" onClick={() => handleEditItem(item)}>
                                                     <Pencil size={20} className="text-green-500 hover:text-green-700 cursor-pointer" />
                                                 </button>
                                                 <button title="Delete">
@@ -259,7 +241,6 @@ const Menus = () => {
                 </div>
             )}
 
-            {/* Menu Modal */}
             <MenuModel isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} menuItem={selectedItem} />
         </div>
     );

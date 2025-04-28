@@ -21,6 +21,7 @@ import CheckoutPage from '../pages/Pages/Customer/Order/Checkout';
 import UnApprovedOrder from '../pages/Pages/RestaurantAdmin/orders/UnApprovedOrder';
 import ApprovedOrder from '../pages/Pages/RestaurantAdmin/orders/ApprovedOrder';
 import CompleteOrder from '../pages/Pages/RestaurantAdmin/orders/CompleteOrder';
+import EditMenuDetails from '../pages/Pages/RestaurantAdmin/RestaurantMenu/EditMenuDetails';
 
 const Restaurants = lazy(() => import('../pages/Pages/Customer/Restaurants'));
 const Index = lazy(() => import('../pages/Index'));
@@ -438,6 +439,11 @@ const routes = [
             {
                 path: '/restaurants-complete-orders',
                 element: <CompleteOrder />,
+            },
+
+            {
+                path: 'edit-menu/:menuId',
+                element: <EditMenuDetails />,
             },
 
             //delivery person page

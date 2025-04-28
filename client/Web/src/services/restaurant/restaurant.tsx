@@ -31,6 +31,11 @@ export const createMenu = async (id: any, data: any) => {
     return response.data;
 };
 
+export const updateMenu = async (id: any, data: any) => {
+    const response = await api.patch(`/menu/api/v1/menu/${id}`, data, {});
+    return response.data;
+};
+
 export const getAllMenuItems = async (p0: string) => {
     const response = await api.get('/menu/api/v1/menu/all-menu');
     return response.data;
