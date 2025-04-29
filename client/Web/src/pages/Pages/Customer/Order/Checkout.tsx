@@ -114,37 +114,45 @@ const CheckoutForm = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
-
+    
         if (!stripe || !elements || !cardReady) {
             setError('Payment system is not ready. Please try again.');
             return;
         }
-
+    
         const cardElement = elements.getElement(CardElement);
         if (!cardElement) {
             setError('Card details are not properly initialized');
             return;
         }
-
+    
         try {
             if (!currentUser) {
                 throw new Error('User is not logged in');
             }
-
+    
             const requiredFields = [shippingAddress.street, shippingAddress.city, shippingAddress.state, shippingAddress.zipCode, shippingAddress.country];
-
+    
             if (requiredFields.some((field) => !field.trim())) {
                 throw new Error('Please fill in all shipping address fields');
             }
-
+    
             setProcessing(true);
-
-            const paymentResponse = await createPaymentIntent(cart.grandTotal, currentUser.id);
-
+    
+            // Concatenate firstName and lastName to form the full name
+            const fullName = `${currentUser.firstName} ${currentUser.lastName}`;
+    
+            const paymentResponse = await createPaymentIntent(cart.grandTotal, currentUser.id, {
+                name: fullName,  // Pass full name here
+                email: currentUser.email,
+                phone: currentUser.phone,
+                shippingAddress, // Make sure this includes the full address
+            });
+    
             if (!paymentResponse.data?.clientSecret) {
                 throw new Error('Failed to initialize payment');
             }
-
+    
             const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(paymentResponse.data.clientSecret, {
                 payment_method: {
                     card: cardElement,
@@ -156,14 +164,17 @@ const CheckoutForm = () => {
                             postal_code: shippingAddress.zipCode,
                             country: "LK",
                         },
+                        name: fullName,  // Pass full name for billing details
+                        email: currentUser.email,
+                        phone: currentUser.phone,
                     },
                 },
             });
-
+    
             if (stripeError) {
                 throw new Error(stripeError.message || 'Payment authorization failed');
             }
-
+    
             if (paymentIntent?.status === 'succeeded') {
                 const orderData = {
                     restaurantId: cart.restaurantId!,
@@ -179,17 +190,18 @@ const CheckoutForm = () => {
                     grandTotal: cart.grandTotal,
                     shippingAddress,
                     paymentId: paymentIntent.id,
+                    customerName: fullName, // Use full name here
                     customerEmail: currentUser.email,
                     customerPhone: '+94764874911',
                     customerName: currentUser.firstName,
                 };
-
+    
                 const orderResponse = await createOrder(orderData);
-
+    
                 if (!orderResponse) {
                     throw new Error('Order creation failed');
                 }
-
+    
                 dispatch({ type: 'CLEAR_CART' });
                 navigate('/ongoing-orders');
             }
@@ -200,6 +212,8 @@ const CheckoutForm = () => {
             setProcessing(false);
         }
     };
+    
+    
 
     if (loading) return <Loader />;
 
