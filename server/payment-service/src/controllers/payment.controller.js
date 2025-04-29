@@ -2,7 +2,7 @@ const { createPaymentIntent } = require('../services/payment.service');
 const Payment = require('../models/payment.model');
 
 
-//const userId = req.user.id;
+
 
 const createPayment = async (req, res) => {
   const { amount, userId } = req.body;  // Amount and userId from the request body
@@ -13,7 +13,7 @@ const createPayment = async (req, res) => {
 
     // Save payment details to MongoDB
     const payment = new Payment({
-      userId, 
+      userId ,  // Use a fixed user ID for testing
       amount,
       paymentIntentId: clientSecret,  // Store the payment intent ID in the database
       paymentStatus: 'pending'

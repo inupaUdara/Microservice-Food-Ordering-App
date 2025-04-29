@@ -32,3 +32,18 @@ export const updateDriverAvailability = async (driverId: string, isAvailable: bo
       throw error;
     }
   };
+
+export const assignDriverToDelivery = async (orderId: string, restaurantLocation:any,deliveryLocation:any) => {
+    try {
+        const response = await api.post(`/deliveries/api/v1/deliveries/assign`, {
+            orderId,
+            restaurantLocation,
+            deliveryLocation
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error assigning driver to delivery:', error);
+        throw error;
+    }
+}
+

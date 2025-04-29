@@ -92,7 +92,7 @@ const UnapprovedRestaurants = () => {
             setUnapprovedRestaurants(data);
             showMessage('Restaurant approved successfully', 'success');
             setRecordsData(data.slice(0, pageSize));
-            navigate(0);
+            // navigate(0);
         } catch (error) {
             console.error('Error approving restaurant:', error);
             setError('Failed to approve restaurant. Please try again.');

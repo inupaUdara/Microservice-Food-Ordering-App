@@ -39,6 +39,26 @@ const RegisterRestaurantAdmin = () => {
             { day: 'Sunday', open: '', close: '' },
         ],
     });
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [errors, setErrors] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        phone: '',
+        restaurantName: '',
+        licenseNumber: '',
+        restaurantPhone: '',
+        restaurantAddress: {
+            street: '',
+            city: '',
+            state: '',
+            zipCode: '',
+            country: '',
+        },
+    });
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -47,6 +67,71 @@ const RegisterRestaurantAdmin = () => {
     useEffect(() => {
         dispatch(setPageTitle('Register Restaurant Admin'));
     }, [dispatch]);
+
+    const validateEmail = (email: string) => {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email) ? '' : 'Invalid email address';
+    };
+
+    const validatePassword = (password: string) => {
+        const minLength = 8;
+        const hasUpperCase = /[A-Z]/.test(password);
+        const hasLowerCase = /[a-z]/.test(password);
+        const hasNumber = /\d/.test(password);
+        const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+        if (password.length < minLength) return 'Password must be at least 8 characters';
+        if (!hasUpperCase) return 'Must contain at least one uppercase letter';
+        if (!hasLowerCase) return 'Must contain at least one lowercase letter';
+        if (!hasNumber) return 'Must contain at least one number';
+        if (!hasSpecialChar) return 'Must contain at least one special character';
+        return '';
+    };
+
+    const validatePhone = (phone: string) => {
+        const re = /^\+?(\d[\d-. ]+)?(\([\d-. ]+\))?[\d-. ]+\d$/;
+        const digits = phone.replace(/\D/g, '');
+        if (!re.test(phone)) return 'Invalid phone number format';
+        if (digits.length < 10) return 'Phone number must have at least 10 digits';
+        return '';
+    };
+
+    const handleBlur = (field: string, value: string) => {
+        let error = '';
+        switch (field) {
+            case 'email':
+                error = validateEmail(value);
+                break;
+            case 'password':
+                error = validatePassword(value);
+                break;
+            case 'phone':
+            case 'restaurantPhone':
+                error = validatePhone(value);
+                break;
+            case 'firstName':
+            case 'lastName':
+            case 'restaurantName':
+            case 'licenseNumber':
+                error = value.trim() ? '' : 'This field is required';
+                break;
+        }
+        setErrors(prev => ({ ...prev, [field]: error }));
+    };
+
+    const validateAddress = () => {
+        const addressErrors = Object.fromEntries(
+            Object.entries(formData.restaurantAddress).map(([key, value]) => [
+                key,
+                value.trim() ? '' : 'This field is required'
+            ])
+        );
+        setErrors(prev => ({
+            ...prev,
+            restaurantAddress: { ...prev.restaurantAddress, ...addressErrors }
+        }));
+        return Object.values(addressErrors).every(error => !error);
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -86,6 +171,31 @@ const RegisterRestaurantAdmin = () => {
 
     const submitForm = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        const newErrors = {
+            firstName: formData.firstName.trim() ? '' : 'Required',
+            lastName: formData.lastName.trim() ? '' : 'Required',
+            email: validateEmail(formData.email),
+            password: validatePassword(formData.password),
+            confirmPassword: confirmPassword === formData.password ? '' : 'Passwords do not match',
+            phone: validatePhone(formData.phone),
+            restaurantName: formData.restaurantName.trim() ? '' : 'Required',
+            licenseNumber: formData.licenseNumber.trim() ? '' : 'Required',
+            restaurantPhone: validatePhone(formData.restaurantPhone),
+        };
+
+        const isAddressValid = validateAddress();
+
+        setErrors(prev => ({
+            ...prev,
+            ...newErrors,
+            restaurantAddress: { ...prev.restaurantAddress }
+        }));
+
+        if (Object.values(newErrors).some(error => error) || !isAddressValid) {
+            showMessage('Please correct the form errors');
+            return;
+        }
         const {
             firstName,
             lastName,
@@ -125,7 +235,7 @@ const RegisterRestaurantAdmin = () => {
         { id: 'firstName', icon: <IconUser />, placeholder: 'First Name' },
         { id: 'lastName', icon: <IconUser />, placeholder: 'Last Name' },
         { id: 'email', icon: <IconMail />, placeholder: 'Email', type: 'email' },
-        { id: 'password', icon: <IconLockDots />, placeholder: 'Password', type: 'password' },
+        { id: 'password', icon: <IconLockDots />, placeholder: 'Password', type: 'password', showToggle: true },
         { id: 'phone', icon: '📞', placeholder: 'Phone' },
         { id: 'restaurantName', icon: '🏪', placeholder: 'Restaurant Name' },
         { id: 'licenseNumber', icon: <IconWheel />, placeholder: 'License Number' },
@@ -149,18 +259,18 @@ const RegisterRestaurantAdmin = () => {
                 </div>
             </div>
 
-            <div className="relative ml-auto w-full lg:w-1/2 flex items-center justify-center py-12 px-12 bg-black overflow-y-auto min-h-screen">
+            <div className="relative ml-auto w-full lg:w-1/2 flex items-center justify-center py-12 px-3 bg-black overflow-y-auto min-h-screen sm:px-16">
                 <div className="absolute inset-0 bg-[url('/assets/images/auth/bg.jpg')] bg-cover bg-center bg-no-repeat z-0">
                     <div className="absolute inset-0 backdrop-blur-lg bg-white/55 dark:bg-black/50"></div>
                 </div>
 
-                <div className="relative w-full max-w-3xl z-10 bg-white/80 dark:bg-white/5 backdrop-blur-md shadow-xl rounded-2xl p-10 transition-all duration-300 ease-in-out">
+                <div className="relative w-full max-w-3xl z-10 bg-white/80 dark:bg-white/5 backdrop-blur-md shadow-xl rounded-2xl p-6 transition-all duration-300 ease-in-out">
                     <h2 className="text-3xl font-extrabold text-center text-gray-800 dark:text-white mb-2">Register as a Restaurant Admin</h2>
                     <p className="text-center text-sm text-gray-600 dark:text-gray-300 mb-6">Fill in the information to get started.</p>
 
                     <form onSubmit={submitForm} className="space-y-6">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {fields.map(({ id, icon, placeholder, type = 'text' }) => (
+                            {fields.map(({ id, icon, placeholder, type = 'text' , showToggle }) => (
                                 <div key={id}>
                                     <label htmlFor={id} className="text-sm font-semibold block mb-1 text-gray-700 dark:text-gray-300">
                                         {placeholder}
@@ -176,7 +286,52 @@ const RegisterRestaurantAdmin = () => {
                                             className="form-input ps-10 placeholder:text-white-dark w-full"
                                         />
                                         <span className="absolute start-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white-dark">{icon}</span>
+                                        {showToggle && (
+                                            <span
+                                                className="absolute end-4 top-1/2 -translate-y-1/2 cursor-pointer"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                            >
+                                                {/* Eye icon SVG */}
+                                            </span>
+                                        )}
                                     </div>
+                                    {errors[id as keyof typeof errors] && (
+                                        <p className="text-red-500 text-sm mt-1">{errors[id as keyof typeof errors]}</p>
+                                    )}
+                                    {id === 'password' && (
+                                        <>
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                Password must contain at least 8 characters, one uppercase,
+                                                one lowercase, one number, and one special character
+                                            </p>
+                                            {/* Confirm Password Field */}
+                                            <div className="mt-4">
+                                                <label htmlFor="confirmPassword" className="text-sm font-semibold block mb-1 text-gray-700 dark:text-gray-300">
+                                                    Confirm Password
+                                                </label>
+                                                <div className="relative text-white-dark">
+                                                    <input
+                                                        id="confirmPassword"
+                                                        type={showPassword ? 'text' : 'password'}
+                                                        placeholder="Confirm Password"
+                                                        value={confirmPassword}
+                                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                                        onBlur={() => setErrors(prev => ({
+                                                            ...prev,
+                                                            confirmPassword: confirmPassword === formData.password ? '' : 'Passwords do not match'
+                                                        }))}
+                                                        className="form-input ps-10 placeholder:text-white-dark w-full"
+                                                    />
+                                                    <span className="absolute start-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white-dark">
+                                                        <IconLockDots />
+                                                    </span>
+                                                </div>
+                                                {errors.confirmPassword && (
+                                                    <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -197,6 +352,11 @@ const RegisterRestaurantAdmin = () => {
                                         className="form-input w-full"
                                         placeholder={placeholder}
                                     />
+                                    {errors.restaurantAddress[id as keyof typeof errors.restaurantAddress] && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {errors.restaurantAddress[id as keyof typeof errors.restaurantAddress]}
+                                        </p>
+                                    )}
                                 </div>
                             ))}
                         </div>

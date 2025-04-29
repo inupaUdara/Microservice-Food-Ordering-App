@@ -15,6 +15,7 @@ const createOrder = async (req, res, next) => {
       grandTotal,
       customerEmail,
       customerPhone,
+      customerName,
     } = req.body;
 
     const order = await OrderService.createOrder(
@@ -27,7 +28,8 @@ const createOrder = async (req, res, next) => {
       grandTotal,
       deliveryFee,
       customerEmail,
-      customerPhone
+      customerPhone,
+      customerName
     );
     res.status(201).json(order);
   } catch (error) {
@@ -79,12 +81,12 @@ const getOrderById = async (req, res, next) => {
 
 const updateOrderStatus = async (req, res, next) => {
   try {
-    const userId = req.user.id;
-    const { orderId } = req.params;
+    // const userId = req.user.id;
+    const orderId = req.params.orderId;
     const { status } = req.body;
 
     const updatedOrder = await OrderService.updateOrderStatus(
-      userId,
+      // userId,
       orderId,
       status
     );
@@ -104,7 +106,7 @@ const updateOrderStatus = async (req, res, next) => {
 const cancelOrder = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { orderId } = req.params;
+    const orderId = req.params.orderId;
 
     const cancelledOrder = await OrderService.cancelOrder(userId, orderId);
     if (!cancelledOrder) {

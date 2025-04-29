@@ -192,7 +192,8 @@ const CheckoutForm = () => {
                     paymentId: paymentIntent.id,
                     customerName: fullName, // Use full name here
                     customerEmail: currentUser.email,
-                    customerPhone: currentUser.phone,
+                    customerPhone: '+94764874911',
+                    customerName: currentUser.firstName,
                 };
     
                 const orderResponse = await createOrder(orderData);
@@ -379,7 +380,7 @@ const CheckoutForm = () => {
                     <div className="mt-4">
                         <label className="block mb-2">Card Details</label>
                         <div className="p-3 border rounded">
-                            <CardElement
+                        <CardElement
                                 ref={cardElementRef}
                                 options={{
                                     style: {
@@ -389,17 +390,21 @@ const CheckoutForm = () => {
                                             '::placeholder': {
                                                 color: '#aab7c4',
                                             },
+                                            backgroundColor: 'transparent',
                                         },
                                         invalid: {
-                                            color: '#9e2146',
+                                            color: '#e53e3e',
                                         },
                                     },
+                                    hidePostalCode: true,
                                 }}
                                 onReady={() => setCardReady(true)}
                                 onChange={(e) => {
                                     setCardReady(e.complete);
                                     if (e.error) {
                                         setError(e.error.message);
+                                    } else {
+                                        setError(null);
                                     }
                                 }}
                             />

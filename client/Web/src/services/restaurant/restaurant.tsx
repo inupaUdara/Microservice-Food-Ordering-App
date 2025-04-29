@@ -31,7 +31,7 @@ export const createMenu = async (id: any, data: any) => {
     return response.data;
 };
 
-export const getAllMenuItems = async () => {
+export const getAllMenuItems = async (p0: string) => {
     const response = await api.get('/menu/api/v1/menu/all-menu');
     return response.data;
 };

@@ -18,6 +18,9 @@ import AllCustomers from '../pages/Pages/SuperAdmin/Customers/AllCustomers';
 import AllDrivers from '../pages/Pages/SuperAdmin/Drivers/AllDrivers';
 import Cart from '../pages/Pages/Customer/Order/Cart';
 import CheckoutPage from '../pages/Pages/Customer/Order/Checkout';
+import UnApprovedOrder from '../pages/Pages/RestaurantAdmin/orders/UnApprovedOrder';
+import ApprovedOrder from '../pages/Pages/RestaurantAdmin/orders/ApprovedOrder';
+import CompleteOrder from '../pages/Pages/RestaurantAdmin/orders/CompleteOrder';
 
 const Restaurants = lazy(() => import('../pages/Pages/Customer/Restaurants'));
 const Index = lazy(() => import('../pages/Index'));
@@ -407,7 +410,7 @@ const routes = [
                 element: <CheckoutPage />,
             },
 
-            //restaurant admin page
+            //restaurant admin menu page
             {
                 path: '/menus',
                 element: <Menus />,
@@ -417,6 +420,24 @@ const routes = [
             {
                 path: '/create-menu',
                 element: <CreateMenus />,
+            },
+
+            //restaurants un-approved orders page
+            {
+                path: '/restaurants-unapproved-orders',
+                element: <UnApprovedOrder />,
+            },
+
+            //restaurants approved orders page
+            {
+                path: '/restaurants-approved-orders',
+                element: <ApprovedOrder />,
+            },
+
+            //resturent complete orders page
+            {
+                path: '/restaurants-complete-orders',
+                element: <CompleteOrder />,
             },
 
             //delivery person page
