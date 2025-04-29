@@ -14,7 +14,8 @@ const createOrder = async (
   grandTotal,
   deliveryFee,
   customerEmail,
-  customerPhone
+  customerPhone,
+  customerName
 ) => {
   if (
     !userId ||
@@ -58,11 +59,11 @@ const createOrder = async (
 
   try {
     await sendOrderConfirmation(customerEmail, customerPhone, {
+      customerName: customerName,
       orderId: savedOrder._id,
-      totalAmount: savedOrder.totalAmount,
-      deliveryFee: savedOrder.deliveryFee,
-      grandTotal: savedOrder.grandTotal,
-      products: savedOrder.products,
+      items: savedOrder.products?.map(
+        (item) => `${item.name} (x${item.quantity}) - $${item.price}`
+      ) || [],
     });
     console.log("Order confirmation notification sent successfully.");
   } catch (err) {
@@ -139,7 +140,7 @@ const getUserOrders = async (userId) => {
 
 const getOrderById = async (userId, orderId) => {
   // Get the order
-  const order = await Order.findOne({ _id: orderId, userId }).lean();
+  const order = await Order.findOne({ _id: orderId }).lean();
 
   if (!order) {
     const error = new Error("Order not found");
@@ -180,7 +181,7 @@ const getOrderById = async (userId, orderId) => {
   }
 };
 
-const updateOrderStatus = async (userId, orderId, status) => {
+const updateOrderStatus = async (orderId, status) => {
   return await Order.findOneAndUpdate(
     { _id: orderId },
     { status, updatedAt: Date.now() },

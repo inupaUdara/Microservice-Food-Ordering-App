@@ -5,10 +5,12 @@ const { sendEmail } = require('../services/email.service');
 const { broadcastOrderCancellation } = require('../websocket/wsServer');  // <-- Correct import path
 
 const sendOrderConfirmation = async (customerEmail, customerPhone, orderDetails) => {
+  const items = Array.isArray(orderDetails.items) ? orderDetails.items : [];
+  
   const emailData = {
     customerName: orderDetails.customerName,
     orderId: orderDetails.orderId,
-    orderItems: orderDetails.items.join(', ')
+    orderItems: items.join(', ')
   };
   const smsText = `Order confirmed: ${orderDetails.orderId}, Items: ${orderDetails.items.join(', ')}`;
 

@@ -32,14 +32,6 @@ const authorizeRoles = (...roles) => {
   };
 };
 
-const authenticateInternalService = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1]; // Just check Bearer token
-  
-  // if (token !== process.env.JWT_SECRET) {
-  //   return res.status(403).json({ message: 'Invalid service token' });
-  // }
-  
-  next(); // Proceed if token matches
-};
 
-module.exports = { authenticateToken, authorizeRoles, authenticateInternalService};
+
+module.exports = { authenticateToken, authorizeRoles};

@@ -9,9 +9,8 @@ const confirmOrder = async (req, res) => {
     const confirmationResult = await sendOrderConfirmation(customerEmail, customerPhone, orderDetails);
 
     if (confirmationResult.success) {
-      // Trigger the broadcast for order assignment
-      broadcastOrderAssignment(orderDetails);  // This will send the message to WebSocket clients
-
+      console.log('Order confirmed, broadcasting:', orderDetails);
+      broadcastOrderAssignment(orderDetails);
       return res.status(200).json({ message: 'Order confirmed and notifications sent.' });
     } else {
       return res.status(500).json({ message: 'Failed to send order confirmation.' });
