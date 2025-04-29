@@ -1,5 +1,6 @@
 const { sendOrderConfirmation, sendOrderCompleteNotification, sendOrderCancellationNotification } = require('./orderNotification.controller');
 const { sendRegistrationConfirmation } = require('./userNotification.controller');
+const { sendRestaurantRegistrationNotification } = require('./restaurantNotification.controller');
 const { broadcastOrderAssignment } = require('../websocket/wsServer'); // Ensure this import is here
 
 const confirmOrder = async (req, res) => {
@@ -74,4 +75,22 @@ const cancelOrder = async (req, res) => {
 };
 
 
-module.exports = { confirmOrder, confirmOrderCompletion, confirmRegistration, cancelOrder };
+const confirmRestaurantRegistration = async (req, res) => {
+  const { restaurantEmail, restaurantPhone, restaurantName } = req.body;
+
+  try {
+    const confirmationResult = await sendRestaurantRegistrationNotification(restaurantEmail, restaurantPhone, restaurantName);
+
+    if (confirmationResult.success) {
+      return res.status(200).json({ message: 'Restaurant registration confirmed and notifications sent.' });
+    } else {
+      return res.status(500).json({ message: 'Failed to send restaurant registration confirmation.' });
+    }
+  } catch (error) {
+    console.error('Error confirming restaurant registration:', error);
+    return res.status(500).json({ message: 'Error confirming restaurant registration.' });
+  }
+};
+
+
+module.exports = { confirmOrder, confirmOrderCompletion, confirmRegistration, cancelOrder, confirmRestaurantRegistration };
