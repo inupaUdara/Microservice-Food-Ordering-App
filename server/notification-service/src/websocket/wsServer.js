@@ -15,20 +15,19 @@ wss.on('connection', (ws) => {
   });
 });
 
-// Function to broadcast an order assignment notification to all connected delivery personnel
 const broadcastOrderAssignment = (orderDetails) => {
   const payload = JSON.stringify({
     type: 'order_assignment',
     data: orderDetails
   });
 
+  console.log('Broadcasting to', wss.clients.size, 'clients with payload:', payload);
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(payload); // Send the message in the correct format
+      client.send(payload);
     }
   });
 };
-
 // Function to broadcast an order completion notification to all connected delivery personnel
 const broadcastOrderCompletion = (orderDetails) => {
   const payload = JSON.stringify({

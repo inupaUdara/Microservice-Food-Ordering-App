@@ -1,28 +1,28 @@
 import { useEffect, useState } from 'react';
 
-export const useWebSocket = (userId: any) => {
-  const [messages, setMessages] = useState<any[]>([]);
+export const useWebSocket = (userId) => {
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
     if (!userId) return;
 
-    const socket = new WebSocket('ws://127.0.0.1:8080'); // connect to your WebSocket server
+    const socket = new WebSocket('ws://127.0.0.1:8080');
 
     socket.onopen = () => {
       console.log('WebSocket connected');
-    //   socket.send(JSON.stringify({
-    //     type: 'register',
-    //     userId: userId,
-    //   }));
     };
 
     socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log('WebSocket received:', data);
-
-      // Example: Only accept messages of type 'order_update'
-      if (data.type === 'order_assignment') {
-        setMessages(prev => [...prev, data.data]); // accumulate messages
+      try {
+        const data = JSON.parse(event.data);
+        console.log('WebSocket received:', data);
+        if (data.type === 'order_assignment') {
+          setMessages(prev => [...prev, data.data]);
+        } else {
+          console.log('Received message with unhandled type:', data.type);
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
       }
     };
 
@@ -34,7 +34,6 @@ export const useWebSocket = (userId: any) => {
       console.log('WebSocket disconnected');
     };
 
-    // Clean up on unmount
     return () => {
       socket.close();
     };
