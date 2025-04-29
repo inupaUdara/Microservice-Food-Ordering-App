@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import api from '../../../../services/axiosInstance';
 import axios from 'axios';
+import { IRootState } from '../../../../store';
+import { useSelector } from 'react-redux';
 
-const FeedbackForm = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+const FeedbackForm = ({ orderId, restaurantId, userId }: { orderId: string, restaurantId: string, userId: string }) => {
+    const currentUser = useSelector((state: IRootState) => state.userConfig.currentUser);
+  const [name, setName] = useState(currentUser?.firstName || '');
+  const [email, setEmail] = useState(currentUser?.email || '');
   const [rating, setRating] = useState(5);
   const [message, setMessage] = useState('');
   const [image, setImage] = useState<File | null>(null);
@@ -21,8 +24,11 @@ const FeedbackForm = () => {
     formData.append('rating', rating.toString());
     formData.append('message', message);
     if (image) {
-      formData.append('images', image); // ✅ Must match your backend field name exactly
+      formData.append('images', image);
     }
+    formData.append('orderId', orderId);
+    formData.append('restaurantId', restaurantId);
+    formData.append('userId', userId);
 
     try {
       await axios.post('http://127.0.0.1:3000/feedback-service/api/v1/feedback', formData); // Don't set headers manually
@@ -49,6 +55,7 @@ const FeedbackForm = () => {
           type="text"
           value={name}
           placeholder="Name"
+          defaultValue={currentUser?.firstName}
           required
           onChange={(e) => setName(e.target.value)}
           className="w-full border p-2 rounded"
@@ -57,6 +64,7 @@ const FeedbackForm = () => {
           type="email"
           value={email}
           placeholder="Email"
+          defaultValue={currentUser?.email}
           required
           onChange={(e) => setEmail(e.target.value)}
           className="w-full border p-2 rounded"
