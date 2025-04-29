@@ -1,14 +1,14 @@
-const { createFeedback, getAllFeedback, getFeedbackById, updateFeedbackById, deleteFeedbackById } = require('../services/feedback.service');
+const { createFeedback, getAllFeedback, getFeedbackById, updateFeedbackById, deleteFeedbackById, getFeedbackByRestaurantId } = require('../services/feedback.service');
 
 // Create new feedback entry
 const createFeedbackHandler = async (req, res) => {
-  const { name, email, rating, message, orderId, status, foodItemId, location, userId, anonymous } = req.body;
+  const { name, email, rating, message, orderId, status, foodItemId, location, userId, anonymous, restaurantId } = req.body;
 
   // FIX: Save only filenames, not full paths
   const images = req.files ? req.files.map(file => file.filename) : [];
 
   try {
-    const feedback = await createFeedback(name, email, rating, message, images, orderId, status, foodItemId, location, userId, anonymous);
+    const feedback = await createFeedback(name, email, rating, message, images, orderId, status, foodItemId, location, userId, anonymous, restaurantId);
     res.status(201).json({ message: 'Feedback created successfully', feedback });
   } catch (error) {
     console.error('Error creating feedback:', error);
@@ -73,4 +73,16 @@ const deleteFeedbackByIdHandler = async (req, res) => {
   }
 };
 
-module.exports = { createFeedbackHandler, getAllFeedbackHandler, getFeedbackByIdHandler, updateFeedbackByIdHandler, deleteFeedbackByIdHandler };
+const getFeedbackByRestaurantIdHandler = async (req, res) => {
+  const { restaurantId } = req.params;
+
+  try {
+    const feedback = await getFeedbackByRestaurantId(restaurantId);
+    res.status(200).json(feedback);
+  } catch (error) {
+    console.error('Error retrieving feedback by restaurant ID:', error);
+    res.status(500).json({ message: 'Error retrieving feedback by restaurant ID' });
+  }
+}
+
+module.exports = { createFeedbackHandler, getAllFeedbackHandler, getFeedbackByIdHandler, updateFeedbackByIdHandler, deleteFeedbackByIdHandler, getFeedbackByRestaurantIdHandler };

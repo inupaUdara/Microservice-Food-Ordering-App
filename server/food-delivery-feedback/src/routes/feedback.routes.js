@@ -1,5 +1,5 @@
 const express = require('express');
-const { createFeedbackHandler, getAllFeedbackHandler, getFeedbackByIdHandler, updateFeedbackByIdHandler, deleteFeedbackByIdHandler } = require('../controllers/feedback.controller');
+const { createFeedbackHandler, getAllFeedbackHandler, getFeedbackByIdHandler, updateFeedbackByIdHandler, deleteFeedbackByIdHandler, getFeedbackByRestaurantIdHandler } = require('../controllers/feedback.controller');
 const multer = require('multer');
 const path = require('path');
 
@@ -20,6 +20,7 @@ router.post('/', upload.array('images', 5), createFeedbackHandler);
 router.get('/', getAllFeedbackHandler);
 router.get('/:id', getFeedbackByIdHandler);
 router.put('/:id', upload.array('images', 5), updateFeedbackByIdHandler);
+router.get('/restaurant/:restaurantId', getFeedbackByRestaurantIdHandler);
 router.delete('/:id', deleteFeedbackByIdHandler);
 
 module.exports = router;

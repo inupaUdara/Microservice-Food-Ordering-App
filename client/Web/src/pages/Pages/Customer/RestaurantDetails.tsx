@@ -3,16 +3,23 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getRestaurantById } from '../../../services/restaurant/restaurant';
 import Loader from '../../Components/Loader';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setPageTitle } from '../../../store/themeConfigSlice';
 import MenuDetails from './MenuDetails';
+import { getFeedbacksByRestaurantId } from '../../../services/feedback/feedback';
+import { IRootState } from '../../../store';
 
 const RestaurantDetails = () => {
     const dispatch = useDispatch();
+    const currentUser = useSelector((state: IRootState) => state.userConfig.currentUser);
     const { id } = useParams();
     const [restaurant, setRestaurant] = useState<any>(null);
+    const [feedbacks, setFeedbacks] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    console.log('Restaurant Details:', restaurant);
+    console.log('Feedbacks:', feedbacks);
 
     useEffect(() => {
         dispatch(setPageTitle(`${restaurant?.restaurantName || 'Restaurant Details'}`));
@@ -35,6 +42,27 @@ const RestaurantDetails = () => {
 
         fetchRestaurant();
     }, [id]);
+
+    useEffect(() => {
+        const fetchRestaurantReview = async () => {
+            if (!restaurant) return; // ✅ Safe guard
+            try {
+                setLoading(true);
+                const data = await getFeedbacksByRestaurantId(restaurant.id);
+                setFeedbacks(data);
+                setError(null);
+            } catch (error) {
+                console.error('Error fetching feedback:', error);
+                setError('Failed to load restaurant feedback. Please try again later.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchRestaurantReview(); // ✅ Will only run if restaurant is available
+    }, [restaurant]); // ✅ Safely watches the whole restaurant object
+
+
 
     if (loading) {
         return <Loader />;
@@ -119,6 +147,39 @@ const RestaurantDetails = () => {
                             </div>
                         </div>
                     </div>
+                {feedbacks?.length > 0 && (
+    <div className="max-w-4xl mx-auto mt-10">
+        <h2 className="text-2xl font-bold mb-4 dark:text-white">Customer Reviews</h2>
+        <div className="grid gap-4">
+            {feedbacks.map((feedback: any) => (
+                <div key={feedback._id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 shadow">
+                    <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-lg text-primary">
+                            {feedback.anonymous ? 'Anonymous' : feedback.name}
+                        </h3>
+                        <span className="text-yellow-500 font-bold">★ {feedback.rating}</span>
+                    </div>
+
+                    <p className="text-gray-700 dark:text-gray-300 mb-2">{feedback.message}</p>
+
+                    {feedback.images?.length > 0 && (
+                        <div className="mt-2">
+                            <img
+                                src={`/uploads/feedbacks/${feedback.images[0]}`} // adjust based on your backend path
+                                alt="feedback"
+                                className="max-w-full h-48 object-cover rounded"
+                            />
+                        </div>
+                    )}
+
+                    <div className="text-sm text-gray-500 mt-3">
+                        {new Date(feedback.feedbackDate).toLocaleDateString()}
+                    </div>
+                </div>
+            ))}
+        </div>
+    </div>
+)}
                 </div>
             </div>
             <MenuDetails restaurant={restaurant} />

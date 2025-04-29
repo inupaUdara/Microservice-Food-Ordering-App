@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Create a new feedback entry
-const createFeedback = async (name, email, rating, message, images, orderId, status = 'pending', foodItemId = null, location = null, userId = null, anonymous = false) => {
+const createFeedback = async (name, email, rating, message, images, orderId, status = 'pending', foodItemId = null, location = null, userId = null, anonymous = false, restaurantId) => {
   const feedback = new Feedback({
     name,
     email,
@@ -15,7 +15,8 @@ const createFeedback = async (name, email, rating, message, images, orderId, sta
     foodItemId,
     location,
     userId,
-    anonymous
+    anonymous,
+    restaurantId,
   });
   return await feedback.save();
 };
@@ -59,4 +60,8 @@ const deleteFeedbackById = async (id) => {
   return await Feedback.findByIdAndDelete(id);
 };
 
-module.exports = { createFeedback, getAllFeedback, getFeedbackById, updateFeedbackById, deleteFeedbackById };
+const getFeedbackByRestaurantId = async (restaurantId) => {
+  return await Feedback.find({ restaurantId }).sort({ feedbackDate: -1 });
+}
+
+module.exports = { createFeedback, getAllFeedback, getFeedbackById, updateFeedbackById, deleteFeedbackById, getFeedbackByRestaurantId };

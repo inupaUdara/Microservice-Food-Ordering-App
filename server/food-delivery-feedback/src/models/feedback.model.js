@@ -13,6 +13,7 @@ const feedbackSchema = new mongoose.Schema({
   feedbackDate: { type: Date, default: Date.now },  // Date feedback was created
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },  // User's ID if logged in
   foodItemId: { type: mongoose.Schema.Types.ObjectId, ref: 'FoodItem', required: false },  // Link to food item
+  restaurantId: { type: String, required: false },  // Restaurant ID
   location: { type: String, required: false },  // Delivery location
   anonymous: { type: Boolean, default: false }  // Whether the feedback is anonymous
 });

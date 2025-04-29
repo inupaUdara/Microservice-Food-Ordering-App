@@ -265,7 +265,7 @@ const OrderDetails = () => {
                             </div>
                         )}
 
-                        {order.status === 'delivered' && <FeedbackForm orderId={order._id} />}
+                        {order.status === 'delivered' && <FeedbackForm orderId={order._id} restaurantId={order.restaurantId} userId={order.userId}/>}
                     </div>
                 </div>
             </div>
