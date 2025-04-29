@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    .email-container {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .email-header {
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #333333;
+    }
+    .email-content {
+      font-size: 16px;
+      color: #666666;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #888888;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="email-header">
+      Order Confirmation
+    </div>
+    <div class="email-content">
+      <p>Dear {{customerName}},</p>
+      <p>Your order has been confirmed. Thank you for choosing us!</p>
+      <p><strong>Order Details:</strong></p>
+      <ul>
+        <li>Order ID: {{orderId}}</li>
+        <li>Items: {{orderItems}}</li>
+      </ul>
+      <p>We're excited to deliver your delicious meal soon.</p>
+    </div>
+    <div class="footer">
+      <p>&copy; 2025 Food Delivery Service. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
