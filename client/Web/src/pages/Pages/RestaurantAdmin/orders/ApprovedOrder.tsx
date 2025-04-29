@@ -2,9 +2,11 @@ import { DataTable } from 'mantine-datatable';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { setPageTitle } from '../../../../store/themeConfigSlice';
-import { getOrderByRestaurantId, updateOrderStatus } from '../../../../services/order/order';
+import { getOrderById, getOrderByRestaurantId, updateOrderStatus } from '../../../../services/order/order';
 import Loader from '../../../Components/Loader';
 import Swal from 'sweetalert2';
+import { geocodeAddress } from '../../../../services/location/mapService';
+import { assignDriverToDelivery } from '../../../../services/driver/driver';
 
 const ApprovedOrder = () => {
     const dispatch = useDispatch();
@@ -13,6 +15,7 @@ const ApprovedOrder = () => {
         dispatch(setPageTitle('Approved Orders'));
     }, [dispatch]);
 
+    const [order, setOrder] = useState<any>(null);
     const [page, setPage] = useState(1);
     const PAGE_SIZES = [10, 20, 30, 50, 100];
     const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
@@ -20,6 +23,59 @@ const ApprovedOrder = () => {
     const [paginatedData, setPaginatedData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [selectedRecord, setSelectedRecord] = useState();
+
+    const fetchOrderAndAssignDriver = async (orderId: string) => {
+        setLoading(true);
+        try {
+            const data = await getOrderById(orderId);
+            setOrder(data);
+            setError(null);
+
+            const restaurantAddress = [
+                data.restaurant.restaurantAddress.street,
+                data.restaurant.restaurantAddress.city,
+                data.restaurant.restaurantAddress.country
+            ].filter(Boolean).join(', ');
+
+            const customerAddress = [
+                data.shippingAddress.street,
+                data.shippingAddress.city,
+                data.shippingAddress.country
+            ].filter(Boolean).join(', ');
+
+            const [restaurantCoords, customerCoords] = await Promise.all([
+                geocodeAddress(restaurantAddress),
+                geocodeAddress(customerAddress)
+            ]);
+
+            const restaurantLocation = {
+                type: "Point",
+                coordinates: [restaurantCoords.lng, restaurantCoords.lat]
+            };
+
+            const deliveryLocation = {
+                type: "Point",
+                coordinates: [customerCoords.lng, customerCoords.lat]
+            };
+
+            await assignDriverToDelivery(data._id, restaurantLocation, deliveryLocation);
+            console.log('Driver assigned successfully');
+        } catch (error: any) {
+            console.error('Detailed error:', error);
+
+            if (error.response) {
+                setError(error.response.data.message || 'Server error occurred.');
+            } else {
+                setError('Failed to process order. Please try again later.');
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    console.log('Records Data:', recordsData);
+    console.log('Selected Record:', selectedRecord);
 
     const showMessage = (msg = '', type = 'error') => {
         const toast: any = Swal.mixin({
@@ -145,12 +201,49 @@ const ApprovedOrder = () => {
                                                 try {
                                                     await updateOrderStatus(_id, { status: newStatus });
                                                     showMessage('Status updated successfully!', 'success');
+
                                                     setRecordsData((prev) =>
-                                                        prev.map((order) => (order._id === _id ? { ...order, status: newStatus } : order)).filter((order) => order.status === 'confirmed')
+                                                        prev.map((order) => (order._id === _id ? { ...order, status: newStatus } : order))
+                                                        .filter((order) => order.status === 'confirmed')
                                                     );
+
+                                                    if (newStatus === 'out_for_delivery') {
+                                                        const data = await getOrderById(_id);
+
+                                                        const restaurantAddress = [
+                                                            data.restaurant?.address?.street,
+                                                            data.restaurant?.address?.city,
+                                                            data.restaurant?.address?.country
+                                                        ].filter(Boolean).join(', ');
+
+                                                        const customerAddress = [
+                                                            data.shippingAddress?.street,
+                                                            data.shippingAddress?.city,
+                                                            data.shippingAddress?.country
+                                                        ].filter(Boolean).join(', ');
+
+                                                        const [restaurantCoords, customerCoords] = await Promise.all([
+                                                            geocodeAddress(restaurantAddress),
+                                                            geocodeAddress(customerAddress)
+                                                        ]);
+
+                                                        const restaurantLocation = {
+                                                            type: "Point",
+                                                            coordinates: [restaurantCoords.lng, restaurantCoords.lat]
+                                                        };
+
+                                                        const deliveryLocation = {
+                                                            type: "Point",
+                                                            coordinates: [customerCoords.lng, customerCoords.lat]
+                                                        };
+
+                                                        await assignDriverToDelivery(data._id, restaurantLocation, deliveryLocation);
+                                                        console.log('Driver assigned successfully');
+                                                        showMessage('Driver assigned successfully!', 'success');
+                                                    }
                                                 } catch (error) {
-                                                    console.error('Failed to update status:', error);
-                                                    showMessage('Failed to update status. Try again.', 'error');
+                                                    console.error('Failed to update status or assign driver:', error);
+                                                    showMessage('Failed to update status or assign driver. Try again.', 'error');
                                                 }
                                             }}
                                             className="border rounded p-1 dark:bg-gray-700 dark:text-white"

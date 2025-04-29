@@ -5,7 +5,6 @@ const {
   calculateEstimatedTime,
 } = require("../utils/calculate-estimate-time.util.js");
 
-
 const assignDriver = async (orderData) => {
   try {
     console.log(`Assigning driver for order: ${orderData?.orderId}`);
@@ -45,7 +44,7 @@ const assignDriver = async (orderData) => {
     const driver = Array.isArray(response.data)
       ? response.data[0]
       : response.data;
-      console.log("Driver selected:", driver);
+    console.log("Driver selected:", driver);
 
     if (!driver || Object.keys(driver).length === 0) {
       console.log("No available drivers found. Retrying later...");
@@ -56,8 +55,14 @@ const assignDriver = async (orderData) => {
     const delivery = new Delivery({
       orderId: orderData.orderId,
       driverId: driver._id,
-      pickupLocation: {latitude:restaurantLocation.coordinates[1],longitude:restaurantLocation.coordinates[0]},
-      deliveryLocation: {latitude:deliveryLocation.coordinates[1],longitude:deliveryLocation.coordinates[0]},
+      pickupLocation: {
+        latitude: restaurantLocation.coordinates[1],
+        longitude: restaurantLocation.coordinates[0],
+      },
+      deliveryLocation: {
+        latitude: deliveryLocation.coordinates[1],
+        longitude: deliveryLocation.coordinates[0],
+      },
       estimatedTime: calculateEstimatedTime(
         restaurantLocation.coordinates,
         deliveryLocation.coordinates,
@@ -116,7 +121,7 @@ const updateStatus = async (deliveryId, status, location) => {
     delivery.deliveredAt = new Date();
     // Update order status in order service
     await axios.patch(
-      `http://order-purchasing-service:3002/orders/api/v1/orders/${delivery.orderId}`,
+      `http://order-purchasing-service:3002/api/v1/orders/${delivery.orderId}`,
       { status: "delivered" }
     );
   }
@@ -160,47 +165,55 @@ const trackDelivery = async (deliveryId, user) => {
 };
 
 const getDeliveryById = async (deliveryId) => {
-    const delivery = await Delivery.findById(deliveryId)
-      .populate('orderId', 'status totalAmount')
-      .populate('driverId', 'name vehicleType');
-    
-    if (!delivery) {
-      throw new Error('Delivery not found');
-    }
-    return delivery;
-  }
+  const delivery = await Delivery.findById(deliveryId)
+    .populate("orderId", "status totalAmount")
+    .populate("driverId", "name vehicleType");
 
-  // Get all deliveries (with pagination)
-  const getAllDeliveries = async (page = 1, limit = 10) => {
-    const skip = (page - 1) * limit;
-    return await Delivery.find()
-      .skip(skip)
-      .limit(limit)
-      .populate('orderId', 'status totalAmount')
-      .populate('driverId', 'name vehicleType');
+  if (!delivery) {
+    throw new Error("Delivery not found");
   }
+  return delivery;
+};
 
-  // Get deliveries by user ID
-  const getDeliveriesByUserId = async(userId, page = 1, limit = 10) => {
-    const skip = (page - 1) * limit;
-    const orders = await axios.get(`http://order-service:3002/api/orders/user/${userId}`);
-    const orderIds = orders.data.map(order => order._id);
-    
-    return await Delivery.find({ orderId: { $in: orderIds } })
-      .skip(skip)
-      .limit(limit)
-      .populate('orderId', 'status totalAmount')
-      .populate('driverId', 'name vehicleType');
-  }
+// Get all deliveries (with pagination)
+const getAllDeliveries = async (page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+  return await Delivery.find()
+    .skip(skip)
+    .limit(limit)
+    .populate("orderId", "status totalAmount")
+    .populate("driverId", "name vehicleType");
+};
 
-  // Get deliveries by driver ID
+// Get deliveries by user ID
+const getDeliveriesByUserId = async (userId, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+  const orders = await axios.get(
+    `http://order-service:3002/api/orders/user/${userId}`
+  );
+  const orderIds = orders.data.map((order) => order._id);
+
+  return await Delivery.find({ orderId: { $in: orderIds } })
+    .skip(skip)
+    .limit(limit)
+    .populate("orderId", "status totalAmount")
+    .populate("driverId", "name vehicleType");
+};
+
+// Get deliveries by driver ID
 const getDeliveriesByDriverId = async (driverId, page = 1, limit = 10) => {
-    const skip = (page - 1) * limit;
-    return await Delivery.find({ driverId })
-      .skip(skip)
-      .limit(limit)
+  const skip = (page - 1) * limit;
+  return await Delivery.find({ driverId }).skip(skip).limit(limit);
+};
 
+const getDeliveryByOrderId = async (orderId) => {
+  const delivery = await Delivery.findOne({ orderId });
+
+  if (!delivery) {
+    throw new Error("Delivery not found");
   }
+  return delivery;
+};
 
 //   const  trackDelivery = async(deliveryId, user) => {
 //     const delivery = await Delivery.findById(deliveryId)
@@ -247,18 +260,28 @@ const getDeliveriesByDriverId = async (driverId, page = 1, limit = 10) => {
 //     });
 //   }
 
-  // Update delivery location
-  const updateDeliveryLocation = async (deliveryId, location) => {
-    const delivery = await Delivery.findByIdAndUpdate(
-      deliveryId,
-      {
-        currentLocation: location,
-        status: "in-transit",
-      },
-      { new: true }
-    );
-    if (!delivery) throw new Error("Delivery not found");
-    return delivery;
-  };
+// Update delivery location
+const updateDeliveryLocation = async (deliveryId, location) => {
+  const delivery = await Delivery.findByIdAndUpdate(
+    deliveryId,
+    {
+      currentLocation: location,
+      status: "in-transit",
+    },
+    { new: true }
+  );
+  if (!delivery) throw new Error("Delivery not found");
+  return delivery;
+};
 
-module.exports = { assignDriver, trackDelivery, updateStatus, getDeliveryById, getAllDeliveries, getDeliveriesByUserId, getDeliveriesByDriverId, updateDeliveryLocation };
+module.exports = {
+  assignDriver,
+  trackDelivery,
+  updateStatus,
+  getDeliveryById,
+  getAllDeliveries,
+  getDeliveriesByUserId,
+  getDeliveriesByDriverId,
+  updateDeliveryLocation,
+  getDeliveryByOrderId,
+};

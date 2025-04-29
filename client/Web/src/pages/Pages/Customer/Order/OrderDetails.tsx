@@ -2,12 +2,17 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getOrderById } from '../../../../services/order/order';
 import Loader from '../../../Components/Loader';
+import { getDeliveryByOrderId } from '../../../../services/delivery/delivery';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import FeedbackForm from './FeedbackForm';
 
 const OrderDetails = () => {
     const { id } = useParams();
     const [order, setOrder] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [delivery, setDelivery] = useState<any>(null);
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -16,6 +21,14 @@ const OrderDetails = () => {
                 const data = await getOrderById(id);
                 setOrder(data);
                 setError(null);
+
+                try {
+                    const deliveryData = await getDeliveryByOrderId(id);
+                    setDelivery(deliveryData);
+                } catch (deliveryError) {
+                    console.warn('No delivery found for this order or error fetching delivery.', deliveryError);
+                    setDelivery(null); // if not found, keep it null
+                }
             } catch (error) {
                 console.error('Error fetching order:', error);
                 setError('Failed to load order details. Please try again later.');
@@ -196,6 +209,63 @@ const OrderDetails = () => {
                                 </div>
                             </div>
                         </div>
+                        {/* Delivery Details (if delivery exists) */}
+                        {delivery && (
+                            <div className="mt-8 border-t dark:border-gray-700 pt-6">
+                                <h2 className="text-lg font-semibold dark:text-white mb-4">Delivery Details</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {/* <div>
+                <h3 className="font-medium dark:text-white mb-2">Pickup Location</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                    Latitude: {delivery.pickupLocation.latitude}
+                    <br />
+                    Longitude: {delivery.pickupLocation.longitude}
+                </p>
+            </div>
+            <div>
+                <h3 className="font-medium dark:text-white mb-2">Delivery Location</h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                    Latitude: {delivery.deliveryLocation.latitude}
+                    <br />
+                    Longitude: {delivery.deliveryLocation.longitude}
+                </p>
+            </div> */}
+                                    <div>
+                                        <h3 className="font-medium dark:text-white mb-2">Estimated Time</h3>
+                                        <p className="text-gray-600 dark:text-gray-300">{delivery.estimatedTime} minutes</p>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-medium dark:text-white mb-2">Delivery Status</h3>
+                                        <p className="text-gray-600 dark:text-gray-300">{delivery.status}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {delivery && (
+                            <div className="mt-8 border-t dark:border-gray-700 pt-6">
+                                <h2 className="text-lg font-semibold dark:text-white mb-4">Delivery Route</h2>
+                                <div className="h-96 w-full">
+                                    <MapContainer center={[delivery.pickupLocation.latitude, delivery.pickupLocation.longitude]} zoom={10} style={{ height: '100%', width: '100%' }}>
+                                        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
+                                        <Marker position={[delivery.pickupLocation.latitude, delivery.pickupLocation.longitude]}>
+                                            <Popup>Pickup Location</Popup>
+                                        </Marker>
+                                        <Marker position={[delivery.deliveryLocation.latitude, delivery.deliveryLocation.longitude]}>
+                                            <Popup>Delivery Location</Popup>
+                                        </Marker>
+                                        <Polyline
+                                            positions={[
+                                                [delivery.pickupLocation.latitude, delivery.pickupLocation.longitude],
+                                                [delivery.deliveryLocation.latitude, delivery.deliveryLocation.longitude],
+                                            ]}
+                                            color="blue"
+                                        />
+                                    </MapContainer>
+                                </div>
+                            </div>
+                        )}
+
+                        {order.status === 'delivered' && <FeedbackForm orderId={order._id} />}
                     </div>
                 </div>
             </div>

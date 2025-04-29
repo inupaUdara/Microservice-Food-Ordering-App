@@ -261,10 +261,10 @@ const updateUserProfile = async (userId, updateData) => {
     let profileUpdate;
     switch (user.role) {
       case 'delivery-person':
-        profileUpdate = await this.updateDriverProfile(userId, updateData);
+        profileUpdate = await updateDriverProfile(userId, updateData);
         break;
       case 'restaurant-admin':
-        profileUpdate = await this.updateRestaurantProfile(userId, updateData);
+        profileUpdate = await updateRestaurantProfile(userId, updateData);
         break;
     }
 

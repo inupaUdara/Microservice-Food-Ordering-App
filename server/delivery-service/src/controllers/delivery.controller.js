@@ -76,7 +76,7 @@ const updateDeliveryStatus = async (req, res, next) => {
       const driverId = req.params.driverId;
       const { page = 1, limit = 10 } = req.query;
       const deliveries = await deliveryService.getDeliveriesByDriverId(driverId, +page, +limit);
-      res.status(200).json(deliveries);
+      res.status(200).json(deliveries[0]);
     } catch (error) {
       next(error);
     }
@@ -94,6 +94,16 @@ const updateDeliveryStatus = async (req, res, next) => {
     }
   };
 
+  const getDeliveryByOrderId = async (req, res, next) => {
+    try {
+      const { orderId } = req.params;
+      const delivery = await deliveryService.getDeliveryByOrderId(orderId);
+      res.status(200).json(delivery);
+    } catch (error) {
+      next(error);
+    }
+  };
+
 module.exports = {
     assignDriverToOrder,
     updateDeliveryStatus,
@@ -102,5 +112,6 @@ module.exports = {
     getAllDeliveries,
     getDeliveriesByUserId,
     getDeliveriesByDriverId,
-    updateLocation
+    updateLocation,
+    getDeliveryByOrderId
 };

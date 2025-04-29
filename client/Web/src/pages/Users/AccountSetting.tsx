@@ -15,6 +15,7 @@ import { updateFailure, updateStart, updateSuccess } from '../../store/userConfi
 import Swal from 'sweetalert2';
 import IconLockDots from '../../components/Icon/IconLockDots';
 import IconWheel from '../../components/Icon/IconWheel';
+import { updateMe } from '../../services/me/me';
 
 const AccountSetting = () => {
     const currentUser = useSelector((state: IRootState) => state.userConfig.currentUser);
@@ -181,22 +182,14 @@ const AccountSetting = () => {
 
         try {
             dispatch(updateStart());
-            const res = await fetch(`/api/users/profile`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(formData),
-            });
+            const res = await updateMe(formData);
 
-            const data = await res.json();
 
-            if (!res.ok) {
-                dispatch(updateFailure(data.message));
-                showErrorMessage(data.message);
+            if (!res.success === true) {
+                dispatch(updateFailure(res.message));
+                showErrorMessage(res.message);
             } else {
-                dispatch(updateSuccess(data));
+                dispatch(updateSuccess(res.user));
                 showSuccessMessage("Profile updated successfully");
             }
         } catch (error) {
@@ -490,6 +483,7 @@ const AccountSetting = () => {
                                 />
                                 {errors.licenseNumber && <p className="text-red-500 text-sm mt-1">{errors.licenseNumber}</p>}
                             </div>
+
                             <div className="sm:col-span-2">
                                 <button type="submit" className="btn btn-primary">
                                     Save Changes

@@ -1,5 +1,5 @@
 const express = require('express');
-const { assignDriverToOrder, updateDeliveryStatus, trackDelivery, getDeliveryById, getAllDeliveries, getDeliveriesByUserId, getDeliveriesByDriverId } = require('../controllers/delivery.controller');
+const { assignDriverToOrder, updateDeliveryStatus, trackDelivery, getDeliveryById, getAllDeliveries, getDeliveriesByUserId, getDeliveriesByDriverId, getDeliveryByOrderId } = require('../controllers/delivery.controller');
 const {authenticateToken, authorizeRoles} = require('../middlewares/auth.middleware');
 const { updateDeliveryLocation } = require('../services/deliver.service');
 
@@ -14,5 +14,6 @@ router.get('/',authenticateToken, getAllDeliveries);
 router.get('/user/:userId',authenticateToken, getDeliveriesByUserId);
 router.get('/driver/:driverId',authenticateToken, getDeliveriesByDriverId);
 router.patch('/:deliveryId/location',authenticateToken, updateDeliveryLocation);
+router.get('/order/:orderId',authenticateToken, getDeliveryByOrderId);
 
 module.exports = router;

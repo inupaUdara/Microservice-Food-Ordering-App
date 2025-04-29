@@ -26,6 +26,10 @@ const PAYMENT_SERVICE =
 const UPLOAD_SERVICE =
   process.env.UPLOAD_SERVICE_URL || "http://upload-service:6001";
 
+const FOOD_DELIVERY_FEEDBACK_URL =
+  process.env.FOOD_DELIVERY_FEEDBACK_URL ||
+  "http://food-delivery-feedback-service:5003";
+
 // Proxy Requests to Microservices
 app.use("/users", proxy(USER_SERVICE));
 app.use("/orders", proxy(ORDER_SERVICE));
@@ -37,6 +41,7 @@ app.use(
   "/upload",
   createProxyMiddleware({ target: UPLOAD_SERVICE, changeOrigin: true })
 );
+app.use("/feedback-service", proxy(FOOD_DELIVERY_FEEDBACK_URL));
 
 app.get("/", (req, res) =>
   res.json({ message: "API Gateway Running with express-http-proxy" })
