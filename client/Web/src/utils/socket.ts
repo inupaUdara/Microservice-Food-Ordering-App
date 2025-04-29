@@ -6,14 +6,14 @@ export const useWebSocket = (userId: any) => {
   useEffect(() => {
     if (!userId) return;
 
-    const socket = new WebSocket('ws://localhost:8080'); // connect to your WebSocket server
+    const socket = new WebSocket('ws://127.0.0.1:8080'); // connect to your WebSocket server
 
     socket.onopen = () => {
       console.log('WebSocket connected');
-      socket.send(JSON.stringify({
-        type: 'register',
-        userId: userId,
-      }));
+    //   socket.send(JSON.stringify({
+    //     type: 'register',
+    //     userId: userId,
+    //   }));
     };
 
     socket.onmessage = (event) => {
@@ -21,7 +21,7 @@ export const useWebSocket = (userId: any) => {
       console.log('WebSocket received:', data);
 
       // Example: Only accept messages of type 'order_update'
-      if (data.type === 'order_update') {
+      if (data.type === 'order_assignment') {
         setMessages(prev => [...prev, data.data]); // accumulate messages
       }
     };

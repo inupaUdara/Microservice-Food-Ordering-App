@@ -4,6 +4,7 @@ const User = require("../models/user.model.js");
 const Driver = require("../models/driver.model.js");
 const Restaurant = require("../models/restaurant.model.js");
 const { JWT_SECRET } = require("../config/env.js");
+const { confirmRegistration } = require("./notification.service.js");
 
 const registerUser = async (userData) => {
   const { email, password, role } = userData;
@@ -77,6 +78,13 @@ const registerUser = async (userData) => {
   // Create and save user
   if (role === "customer") {
     await user.save();
+    try {
+      await confirmRegistration(user.email, "+94764874911", user.firstName);
+      console.log("Registration confirmation notification sent successfully.");
+    } catch (err) {
+      console.error("Failed to send order confirmation:", err.message);
+      // Optional: decide if you want to continue even if notification fails
+    }
   }
 
   let driver = null;
@@ -116,6 +124,8 @@ const registerUser = async (userData) => {
     user.restaurantProfile = restaurant._id;
     await user.save();
   }
+
+
 
   return {
     success: true,
