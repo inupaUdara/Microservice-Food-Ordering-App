@@ -2,7 +2,7 @@ const { createPaymentIntent } = require('../services/payment.service');
 const Payment = require('../models/payment.model');
 
 
-const FIXED_USER_ID = '60d5f0f57c87d4f3b8b48d62';  // Replace with an actual user ID
+
 
 const createPayment = async (req, res) => {
   const { amount, userId } = req.body;  // Amount and userId from the request body
@@ -13,7 +13,7 @@ const createPayment = async (req, res) => {
 
     // Save payment details to MongoDB
     const payment = new Payment({
-      userId:FIXED_USER_ID ,  // Use a fixed user ID for testing
+      userId ,  // Use a fixed user ID for testing
       amount,
       paymentIntentId: clientSecret,  // Store the payment intent ID in the database
       paymentStatus: 'pending'

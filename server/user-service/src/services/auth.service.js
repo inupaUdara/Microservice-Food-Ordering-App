@@ -4,6 +4,7 @@ const User = require("../models/user.model.js");
 const Driver = require("../models/driver.model.js");
 const Restaurant = require("../models/restaurant.model.js");
 const { JWT_SECRET } = require("../config/env.js");
+const { confirmRegistration } = require("./notification.service.js");
 
 const registerUser = async (userData) => {
   const { email, password, role } = userData;
@@ -77,6 +78,13 @@ const registerUser = async (userData) => {
   // Create and save user
   if (role === "customer") {
     await user.save();
+    try {
+      await confirmRegistration(user.email, "+94764874911", user.firstName);
+      console.log("Registration confirmation notification sent successfully.");
+    } catch (err) {
+      console.error("Failed to send order confirmation:", err.message);
+      // Optional: decide if you want to continue even if notification fails
+    }
   }
 
   let driver = null;
@@ -116,6 +124,8 @@ const registerUser = async (userData) => {
     user.restaurantProfile = restaurant._id;
     await user.save();
   }
+
+
 
   return {
     success: true,
@@ -237,4 +247,96 @@ const getUserProfile = async (userId) => {
   };
 };
 
-module.exports = { registerUser, loginUser, getUserProfile };
+const updateUserProfile = async (userId, updateData) => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Update common user fields
+    const userUpdates = {};
+    const allowedUserFields = ['firstName', 'lastName', 'phone', 'address'];
+    allowedUserFields.forEach(field => {
+      if (updateData[field] !== undefined) {
+        userUpdates[field] = updateData[field];
+      }
+    });
+
+    if (Object.keys(userUpdates).length > 0) {
+      await User.findByIdAndUpdate(userId, userUpdates, { new: true, runValidators: true });
+    }
+
+    // Update role-specific profiles
+    let profileUpdate;
+    switch (user.role) {
+      case 'delivery-person':
+        profileUpdate = await updateDriverProfile(userId, updateData);
+        break;
+      case 'restaurant-admin':
+        profileUpdate = await updateRestaurantProfile(userId, updateData);
+        break;
+    }
+
+    // Get updated user with populated profile
+    const updatedUser = await User.findById(userId)
+      .populate({
+        path: 'driverProfile',
+        select: '-documents -activeOrders -__v'
+      })
+      .populate({
+        path: 'restaurantProfile',
+        select: '-__v -createdAt'
+      })
+      .select('-password -__v');
+
+    return updatedUser;
+    
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+const updateDriverProfile = async (userId, updateData) => {
+  const driver = await Driver.findOne({ userId });
+  if (!driver) {
+    throw new Error('Driver profile not found');
+  }
+
+  const allowedFields = ['vehicleType', 'vehicleNumber', 'licenseNumber', 'currentLocation'];
+  const driverUpdates = {};
+  
+  allowedFields.forEach(field => {
+    if (updateData[field] !== undefined) {
+      driverUpdates[field] = updateData[field];
+    }
+  });
+
+  return Driver.findByIdAndUpdate(driver._id, driverUpdates, { new: true, runValidators: true });
+};
+
+const updateRestaurantProfile = async (userId, updateData) => {
+  const restaurant = await Restaurant.findOne({ userId });
+  if (!restaurant) {
+    throw new Error('Restaurant profile not found');
+  }
+
+  const allowedFields = [
+    'restaurantName', 'restaurantPhone', 'restaurantAddress', 'openingHours', 'logo'
+  ];
+  const restaurantUpdates = {};
+
+  allowedFields.forEach(field => {
+    if (updateData[field] !== undefined) {
+      restaurantUpdates[field] = updateData[field];
+    }
+  });
+
+  return Restaurant.findByIdAndUpdate(
+    restaurant._id,
+    restaurantUpdates,
+    { new: true, runValidators: true }
+  );
+};
+
+module.exports = { registerUser, loginUser, getUserProfile, updateUserProfile, updateDriverProfile, updateRestaurantProfile };

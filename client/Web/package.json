@@ -37,6 +37,8 @@
         "easymde": "^2.18.0",
         "formik": "^2.2.9",
         "highlight.js": "^11.6.0",
+        "leaflet": "^1.9.4",
+        "leaflet-routing-machine": "^3.2.12",
         "lucide-react": "^0.503.0",
         "mantine-datatable": "^1.7.17",
         "nouislider-react": "^3.4.1",
@@ -51,6 +53,7 @@
         "react-flatpickr": "^3.10.13",
         "react-hook-form": "^7.56.1",
         "react-images-uploading": "^3.1.7",
+        "react-leaflet": "^4.2.1",
         "react-popper": "^2.3.0",
         "react-quill": "^2.0.0",
         "react-redux": "^8.0.4",
@@ -70,7 +73,7 @@
         "yup": "^0.32.11"
     },
     "devDependencies": {
-        "@headlessui/react": "^1.7.3",
+        "@headlessui/react": "^1.7.19",
         "@tailwindcss/forms": "^0.5.3",
         "@tailwindcss/typography": "^0.5.7",
         "@types/react": "^18.0.27",

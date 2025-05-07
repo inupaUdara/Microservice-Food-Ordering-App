@@ -1,13 +1,20 @@
 import { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setPageTitle } from '../../../../store/themeConfigSlice';
 import { Link, useNavigate } from 'react-router-dom';
 import { getAllUserOrders } from '../../../../services/order/order';
 import Loader from '../../../Components/Loader';
+import {useWebSocket} from '../../../../utils/socket';
+import { IRootState } from '../../../../store';
 
 const OngoingOrders = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+        const currentUser = useSelector((state: IRootState) => state.userConfig.currentUser);
+    // const socket = useWebSocket(currentUser && currentUser.id);
+
+    const { messages } = useWebSocket(currentUser && currentUser.id);
+
 
     useEffect(() => {
         dispatch(setPageTitle('My Orders'));
@@ -84,6 +91,18 @@ const OngoingOrders = () => {
                     <span> Ongoing Orders</span>
                 </li>
             </ul>
+
+            <div>
+      <h2>Notifications</h2>
+      {messages.length === 0 && <p>No notifications yet.</p>}
+      <ul>
+        {messages.map((msg, index) => (
+          <li key={index}>
+            Order ID: {msg.orderId} - Status: {msg.status}
+          </li>
+        ))}
+      </ul>
+    </div>
 
             <div className="pt-5">
                 {!orders || orders.length === 0 ? (

@@ -14,6 +14,7 @@ services:
       - NOTIFICATION_SERVICE_URL=http://notification-service:5001
       - PAYMENT_SERVICE_URL=http://payment-service:5002
       - UPLOAD_SERVICE_URL=http://upload-service:6001
+      - FOOD_DELIVERY_FEEDBACK_SERVICE_URL=http://food-delivery-feedback-service:5003
 
     depends_on:
       - user-service
@@ -23,6 +24,7 @@ services:
       - notification-service
       - payment-service
       - upload-service
+      - food-delivery-feedback-service
       - rabbitmq
     restart: unless-stopped
 
@@ -86,6 +88,7 @@ services:
       - micronetwork
     ports:
       - "5001:5001"
+      - "8080:8080"
     environment:
       - PORT=5001
       - RABBITMQ_URL=amqp://rabbitmq
@@ -115,6 +118,20 @@ services:
       - "6001:6001"
     environment:
       - PORT=6001
+    restart: unless-stopped
+
+  food-delivery-feedback-service:
+    build: ./food-delivery-feedback
+    container_name: food-delivery-feedback-service
+    networks:
+      - micronetwork
+    ports:
+      - "5003:5003"
+    environment:
+      - PORT=5003
+      - RABBITMQ_URL=amqp://rabbitmq
+    depends_on:
+      - rabbitmq
     restart: unless-stopped
 
   rabbitmq:
