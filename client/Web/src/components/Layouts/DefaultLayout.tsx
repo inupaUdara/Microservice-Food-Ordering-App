@@ -5,7 +5,6 @@ import { IRootState } from '../../store';
 import { toggleSidebar } from '../../store/themeConfigSlice';
 import Footer from './Footer';
 import Header from './Header';
-import Setting from './Setting';
 import Sidebar from './Sidebar';
 import Portals from '../Portals';
 import { CartProvider } from '../../contexts/CartContext';
@@ -74,10 +73,6 @@ const DefaultLayout = ({ children }: PropsWithChildren) => {
                         </button>
                     )}
                 </div>
-
-                {/* BEGIN APP SETTING LAUNCHER */}
-                {/* <Setting /> */}
-                {/* END APP SETTING LAUNCHER */}
 
                 <div className={`${themeConfig.navbar} main-container text-black dark:text-white-dark min-h-screen`}>
                     {/* BEGIN SIDEBAR */}
