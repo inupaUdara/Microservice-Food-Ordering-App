@@ -1,7 +1,7 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { createMenu } from '../../../../services/restaurant/restaurant';
-import { uploadImage } from '../../../../services/upload/upload';
+import { getAllMenuItems, updateMenu } from '../../../../services/restaurant/restaurant';
+import { uploadImage, getImageById } from '../../../../services/upload/upload';
 import Loader from '../../../Components/Loader';
 import Swal from 'sweetalert2';
 
@@ -21,7 +21,7 @@ interface FormData {
     description: string;
     category: string;
     price: number;
-    image?: File;
+    image?: File | string;
     availability: boolean;
     ingredients: string[];
     dietaryTags: string[];
@@ -35,11 +35,14 @@ const dietaryTagOptions = ['vegetarian', 'vegan', 'gluten-free', 'dairy-free'];
 const categories = ['Appetizers', 'Main Course', 'Desserts', 'Beverages', 'Sides'];
 const spicyLevels = ['Mild', 'Medium', 'Hot'];
 
-const CreateMenus: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
+const EditMenuDetails: React.FC = () => {
+    const { id, menuId } = useParams<{ id: string; menuId: string }>();
     const [submitting, setSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const [formData, setFormData] = useState<FormData>({
         name: '',
@@ -54,6 +57,7 @@ const CreateMenus: React.FC = () => {
         isVeg: false,
         spicyLevel: 'Mild',
     });
+
     const showMessage = (msg = '', type = 'error') => {
         const toast: any = Swal.mixin({
             toast: true,
@@ -68,6 +72,59 @@ const CreateMenus: React.FC = () => {
             padding: '10px 20px',
         });
     };
+
+    useEffect(() => {
+        const fetchMenuItem = async () => {
+            try {
+                const menuItems = await getAllMenuItems(id!);
+                const menuItem = menuItems.find((item: any) => item._id === menuId);
+
+                if (menuItem) {
+                    let imageUrl = null;
+                    if (menuItem.image) {
+                        if (menuItem.image.startsWith('http')) {
+                            imageUrl = menuItem.image;
+                        } else {
+                            try {
+                                const imageData = await getImageById(menuItem.image);
+                                imageUrl = imageData.url;
+                                setError(null);
+                            } catch (error) {
+                                console.error('Error fetching image:', error);
+                                setError('Failed to load image. Please try again later.');
+                                showMessage('Failed to load image. Please try again later.', 'error');
+                            }
+                        }
+                    }
+
+                    setFormData({
+                        name: menuItem.name,
+                        description: menuItem.description || '',
+                        category: menuItem.category,
+                        price: menuItem.price,
+                        availability: menuItem.availability,
+                        ingredients: menuItem.ingredients || [],
+                        dietaryTags: menuItem.dietaryTags || [],
+                        customizations: menuItem.customizations || [],
+                        preparationTime: menuItem.preparationTime || 15,
+                        isVeg: menuItem.isVeg || false,
+                        spicyLevel: menuItem.spicyLevel || 'Mild',
+                        image: imageUrl,
+                    });
+                    setImagePreview(imageUrl);
+                    setError(null);
+                }
+            } catch (error) {
+                console.error('Error fetching menu item:', error);
+                setError('Failed to load menu item. Please try again later.');
+                showMessage('Failed to load menu item. Please try again later.', 'error');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMenuItem();
+    }, [id, menuId]);
 
     const validateForm = (): boolean => {
         const newErrors: Record<string, string> = {};
@@ -101,7 +158,9 @@ const CreateMenus: React.FC = () => {
 
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            setFormData((prev) => ({ ...prev, image: e.target.files![0] }));
+            const file = e.target.files[0];
+            setFormData((prev) => ({ ...prev, image: file }));
+            setImagePreview(URL.createObjectURL(file));
         }
     };
 
@@ -183,55 +242,43 @@ const CreateMenus: React.FC = () => {
         try {
             setSubmitting(true);
 
-            let uploadedImageUrl = '';
+            let uploadedImageUrl = formData.image;
 
-            if (formData.image) {
+            if (formData.image instanceof File) {
                 const imageResponse = await uploadImage(formData.image);
                 uploadedImageUrl = imageResponse?.url || imageResponse?.imageUrl || '';
             }
 
             const payload = {
                 ...formData,
-                image: uploadedImageUrl, // now contains the uploaded URL or ID
+                image: uploadedImageUrl,
                 restaurantId: id,
                 price: Number(formData.price),
                 preparationTime: Number(formData.preparationTime),
             };
 
-            const result = await createMenu(id!, payload);
-            console.log('Menu Created:', result);
-
-            // Reset the form
-            setFormData({
-                name: '',
-                description: '',
-                category: '',
-                price: 0,
-                availability: true,
-                ingredients: [],
-                dietaryTags: [],
-                customizations: [],
-                preparationTime: 15,
-                isVeg: false,
-                spicyLevel: 'Mild',
-            });
+            const result = await updateMenu(menuId!, payload);
+            console.log('Menu Updated:', result);
             navigate('/menus');
-            setErrors({});
-            showMessage('Menu created successfully', 'success');
+            setError(null);
+            showMessage('Menu updated successfully!', 'success');
         } catch (error) {
-            console.error('Failed to create menu', error);
-            setErrors({ server: 'Failed to create menu. Please try again.' });
-            showMessage('Failed to create menu', 'error');
+            console.error('Failed to update menu', error);
+            setError('Failed to update menu. Please try again later.');
+            showMessage('Failed to update menu. Please try again later.', 'error');
         } finally {
             setSubmitting(false);
         }
     };
+
+    if (loading) return <Loader />;
+    if (error) return <div className="text-center py-10 text-red-500">{error}</div>;
+
     return (
         <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-md">
-            <h2 className="text-2xl font-bold mb-6">Create New Menu Item</h2>
+            <h2 className="text-2xl font-bold mb-6">Edit Menu Item</h2>
 
-            <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data" action="/upload">
-                {/* Basic Information Section */}
+            <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-sm font-medium mb-1">Name*</label>
@@ -274,17 +321,14 @@ const CreateMenus: React.FC = () => {
                     <div>
                         <label className="block text-sm font-medium mb-1">Image</label>
                         <input type="file" accept="image/*" onChange={handleFileChange} className="w-full p-2 border rounded" />
-
-                        {formData.image && (
+                        {imagePreview && (
                             <div className="mt-2">
-                                <p className="text-sm text-gray-600">Selected Image: {formData.image.name}</p>
-                                <img src={URL.createObjectURL(formData.image)} alt="Preview" className="mt-2 max-h-48 rounded border" />
+                                <img src={imagePreview} alt="Preview" className="mt-2 max-h-48 rounded border" />
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* Additional Details Section */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-sm font-medium mb-1">Preparation Time (minutes)</label>
@@ -313,13 +357,16 @@ const CreateMenus: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Ingredients Section */}
                 <div>
                     <label className="block text-sm font-medium mb-1">Ingredients</label>
-                    <input onChange={handleIngredientsChange} className="w-full p-2 border rounded" placeholder="e.g., chicken, onions, garlic (comma separated)" />
+                    <input
+                        onChange={handleIngredientsChange}
+                        value={formData.ingredients.join(', ')}
+                        className="w-full p-2 border rounded"
+                        placeholder="e.g., chicken, onions, garlic (comma separated)"
+                    />
                 </div>
 
-                {/* Dietary Tags Section */}
                 <div>
                     <label className="block text-sm font-medium mb-2">Dietary Tags</label>
                     <div className="flex flex-wrap gap-4">
@@ -332,7 +379,6 @@ const CreateMenus: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Customizations Section */}
                 <div className="space-y-4">
                     <h3 className="text-lg font-medium">Customizations</h3>
 
@@ -400,10 +446,9 @@ const CreateMenus: React.FC = () => {
                     </button>
                 </div>
 
-                {/* Submit Button */}
                 <div className="pt-4">
                     <button type="submit" disabled={submitting} className={`w-full md:w-auto px-6 py-2 rounded-md text-white ${submitting ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'}`}>
-                        {submitting ? 'Creating Menu...' : 'Create Menu'}
+                        {submitting ? 'Updating Menu...' : 'Update Menu'}
                     </button>
                 </div>
             </form>
@@ -411,4 +456,4 @@ const CreateMenus: React.FC = () => {
     );
 };
 
-export default CreateMenus;
+export default EditMenuDetails;

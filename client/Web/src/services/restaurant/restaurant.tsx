@@ -31,6 +31,11 @@ export const createMenu = async (id: any, data: any) => {
     return response.data;
 };
 
+export const updateMenu = async (id: any, data: any) => {
+    const response = await api.patch(`/menu/api/v1/menu/${id}`, data, {});
+    return response.data;
+};
+
 export const getAllMenuItems = async (p0: string) => {
     const response = await api.get('/menu/api/v1/menu/all-menu');
     return response.data;
@@ -39,4 +44,14 @@ export const getAllMenuItems = async (p0: string) => {
 export const approveRestaurant = async (id: any, isApproved: boolean) => {
     const response = await api.put(`/users/api/v1/restaurants/approve/${id}`, { isApproved });
     return response.data.restaurant;
+};
+
+export const getMenuById = async (id: any) => {
+    const response = await api.get(`/menu/api/v1/menu/${id}`);
+    return response.data;
+};
+
+export const deleteMenu = async (id: string) => {
+    const response = await api.delete(`/menu/api/v1/menu/${id}`);
+    return response.data;
 };

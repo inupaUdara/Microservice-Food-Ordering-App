@@ -58,8 +58,8 @@ const deleteImage = async (id) => {
 const updateImage = async (id, file) => {
   const oldImage = await deleteImage(id);
   if (!oldImage) return null;
-  const newImage = await uploadImage(file);
-  newImage.id = id; // Keep the same ID
+
+  const newImage = await uploadImage(file, id); // Pass the same ID here
   images.set(id, newImage);
   return newImage;
 };

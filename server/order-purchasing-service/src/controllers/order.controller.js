@@ -145,6 +145,16 @@ const getGeoCode = async (req, res, next) => {
   }
 };
 
+const getOutForDeliveryStats = async (req, res, next) => {
+  try {
+    const restaurantId = req.user.restaurantId;
+    const stats = await OrderService.getOutForDeliveryStats(restaurantId);
+    res.status(200).json(stats);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createOrder,
   getRestaurantOrders,
@@ -153,4 +163,5 @@ module.exports = {
   updateOrderStatus,
   cancelOrder,
   getGeoCode,
+  getOutForDeliveryStats,
 };

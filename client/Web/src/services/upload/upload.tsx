@@ -17,12 +17,40 @@ export const uploadImage = async (file: File) => {
     }
 };
 
+export const updateImage = async (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+        const response = await api.put(`upload/api/images/${id}`, formData, {
+            // <-- Here corrected
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating image:', error);
+        throw error;
+    }
+};
+
 export const getImageById = async (id: string) => {
     try {
         const response = await api.get(`upload/api/images/${id}`);
         return response.data;
     } catch (error) {
         console.error('Error fetching image:', error);
+        throw error;
+    }
+};
+
+export const deleteImage = async (id: string) => {
+    try {
+        const response = await api.delete(`upload/api/images/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting image:', error);
         throw error;
     }
 };
