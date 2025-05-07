@@ -32,7 +32,7 @@
         "@types/react-dom": "^18.0.6",
         "@types/react-text-mask": "^5.4.11",
         "@x1mrdonut1x/nouislider-react": "^3.4.3",
-        "apexcharts": "^3.37.1",
+        "apexcharts": "^3.54.1",
         "axios": "^1.8.4",
         "easymde": "^2.18.0",
         "formik": "^2.2.9",

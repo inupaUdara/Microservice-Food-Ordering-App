@@ -200,6 +200,60 @@ const cancelOrder = async (userId, orderId) => {
   );
 };
 
+const getOutForDeliveryStats = async (restaurantId) => {
+  const stats = await Order.aggregate([
+    {
+      $match: {
+        restaurantId: mongoose.Types.ObjectId(restaurantId),
+        status: "out_for_delivery",
+      },
+    },
+    {
+      $group: {
+        _id: { month: { $month: "$createdAt" } },
+        orders: { $sum: 1 },
+        amount: { $sum: "$grandTotal" },
+      },
+    },
+    {
+      $sort: { "_id.month": 1 },
+    },
+  ]);
+
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const monthlyStats = Array.from({ length: 12 }, (_, i) => {
+    const stat = stats.find((s) => s._id.month === i + 1);
+    return {
+      month: monthNames[i],
+      orders: stat?.orders || 0,
+      amount: stat?.amount || 0,
+    };
+  });
+
+  const totalOrders = monthlyStats.reduce((sum, m) => sum + m.orders, 0);
+  const totalAmount = monthlyStats.reduce((sum, m) => sum + m.amount, 0);
+
+  return {
+    totalOrders,
+    totalAmount,
+    monthlyStats,
+  };
+};
+
 module.exports = {
   createOrder,
   getRestaurantOrders,
@@ -207,4 +261,5 @@ module.exports = {
   getOrderById,
   updateOrderStatus,
   cancelOrder,
+  getOutForDeliveryStats,
 };

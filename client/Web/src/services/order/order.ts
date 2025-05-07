@@ -26,3 +26,8 @@ export const updateOrderStatus = async (orderId: any, status: any) => {
     console.log('API response:', response);
     return response.data;
 };
+
+export const getOutForDeliveryStats = async () => {
+    const response = await api.get('/orders/api/v1/orders/restaurant/stats/out-for-delivery');
+    return response.data;
+};

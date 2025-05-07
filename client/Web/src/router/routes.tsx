@@ -22,6 +22,7 @@ import UnApprovedOrder from '../pages/Pages/RestaurantAdmin/orders/UnApprovedOrd
 import ApprovedOrder from '../pages/Pages/RestaurantAdmin/orders/ApprovedOrder';
 import CompleteOrder from '../pages/Pages/RestaurantAdmin/orders/CompleteOrder';
 import EditMenuDetails from '../pages/Pages/RestaurantAdmin/RestaurantMenu/EditMenuDetails';
+import AdminDashboard from '../pages/Pages/RestaurantAdmin/AdminDashboard/AdminDashboard';
 
 const Restaurants = lazy(() => import('../pages/Pages/Customer/Restaurants'));
 const Index = lazy(() => import('../pages/Index'));
@@ -409,6 +410,12 @@ const routes = [
             {
                 path: '/checkout',
                 element: <CheckoutPage />,
+            },
+
+            //restaurant admin dashboard
+            {
+                path: '/restaurant-admin-dashboard',
+                element: <AdminDashboard />,
             },
 
             //restaurant admin menu page
