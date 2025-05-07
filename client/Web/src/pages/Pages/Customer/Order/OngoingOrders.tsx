@@ -94,14 +94,14 @@ const OngoingOrders = () => {
 
             <div>
       <h2>Notifications</h2>
-      {messages.length === 0 && <p>No notifications yet.</p>}
-      <ul>
+      {/* {messages.length === 0 && <p>No notifications yet.</p>} */}
+      {/* <ul>
         {messages.map((msg, index) => (
           <li key={index}>
-            Order ID: {msg.orderId} - Status: {msg.status}
+            Order ID: {msg.orderId} - Status: {'Order Comfiremed'}
           </li>
         ))}
-      </ul>
+      </ul> */}
     </div>
 
             <div className="pt-5">
