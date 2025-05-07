@@ -86,12 +86,12 @@ const FeedbackForm = ({ orderId, restaurantId, userId }: { orderId: string, rest
           onChange={(e) => setMessage(e.target.value)}
           className="w-full border p-2 rounded"
         />
-        <input
+        {/* <input
           type="file"
           accept="image/*"
           onChange={(e) => setImage(e.target.files?.[0] || null)}
           className="w-full"
-        />
+        /> */}
         <button
           type="submit"
           disabled={loading}

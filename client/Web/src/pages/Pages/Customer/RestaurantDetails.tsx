@@ -164,11 +164,11 @@ const RestaurantDetails = () => {
 
                     {feedback.images?.length > 0 && (
                         <div className="mt-2">
-                            <img
+                            {/* <img
                                 src={`/uploads/feedbacks/${feedback.images[0]}`} // adjust based on your backend path
                                 alt="feedback"
                                 className="max-w-full h-48 object-cover rounded"
-                            />
+                            /> */}
                         </div>
                     )}
 

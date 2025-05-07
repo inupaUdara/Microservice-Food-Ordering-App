@@ -6,33 +6,70 @@
   <title>Order Confirmation</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f7fc;
       padding: 20px;
+      margin: 0;
     }
     .email-container {
       background-color: #ffffff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      max-width: 600px;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+      max-width: 650px;
       margin: 0 auto;
+      font-size: 16px;
     }
     .email-header {
       text-align: center;
-      font-size: 24px;
+      font-size: 28px;
       font-weight: bold;
       color: #333333;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
     }
     .email-content {
-      font-size: 16px;
       color: #666666;
+      line-height: 1.6;
+    }
+    .order-details {
+      background-color: #f9f9f9;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    .order-details ul {
+      padding-left: 20px;
+    }
+    .order-details li {
+      font-size: 16px;
+      margin-bottom: 10px;
+      color: #555555;
     }
     .footer {
       text-align: center;
-      margin-top: 20px;
-      font-size: 12px;
+      font-size: 14px;
       color: #888888;
+      margin-top: 30px;
+    }
+    .footer a {
+      color: #2980b9;
+      text-decoration: none;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 25px;
+      background-color: #2980b9;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 30px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .btn:hover {
+      background-color: #3498db;
     }
   </style>
 </head>
@@ -43,16 +80,23 @@
     </div>
     <div class="email-content">
       <p>Dear {{customerName}},</p>
-      <p>Your order has been confirmed. Thank you for choosing us!</p>
-      <p><strong>Order Details:</strong></p>
-      <ul>
-        <li>Order ID: {{orderId}}</li>
-        <li>Items: {{orderItems}}</li>
-      </ul>
-      <p>We're excited to deliver your delicious meal soon.</p>
+      <p>We are pleased to confirm your order with us. Thank you for choosing us! Your order is now being processed, and we can't wait to deliver your delicious meal.</p>
+      
+      <div class="order-details">
+        <p><strong>Order Details:</strong></p>
+        <ul>
+          <li><strong>Order ID:</strong> {{orderId}}</li>
+          <li><strong>Items:</strong> {{orderItems}}</li>
+        </ul>
+      </div>
+
+      <p>If you have any questions or need assistance with your order, feel free to <a href="mailto:support@fooddelivery.com">contact us</a>.</p>
+      
+      <a href="https://www.fooddelivery.com" class="btn">Track Your Order</a>
     </div>
     <div class="footer">
       <p>&copy; 2025 Food Delivery Service. All rights reserved.</p>
+      <p><a href="https://www.fooddelivery.com/terms">Terms & Conditions</a> | <a href="https://www.fooddelivery.com/privacy">Privacy Policy</a></p>
     </div>
   </div>
 </body>
