@@ -1,5 +1,5 @@
 const { sendOrderConfirmation, sendOrderCompleteNotification, sendOrderCancellationNotification } = require('./orderNotification.controller');
-const { sendRegistrationConfirmation } = require('./userNotification.controller');
+const { sendRegistrationConfirmation, passwordReset } = require('./userNotification.controller');
 const { sendRestaurantRegistrationNotification } = require('./restaurantNotification.controller');
 const { broadcastOrderAssignment } = require('../websocket/wsServer'); // Ensure this import is here
 
@@ -40,7 +40,7 @@ const confirmOrderCompletion = async (req, res) => {
 };
 
 const confirmRegistration = async (req, res) => {
-  const { customerEmail, customerPhone, userName } = req.body;
+  const { customerEmail, userName } = req.body;
 
   try {
     const confirmationResult = await sendRegistrationConfirmation(customerEmail, customerPhone, userName);
@@ -53,6 +53,23 @@ const confirmRegistration = async (req, res) => {
   } catch (error) {
     console.error('Error confirming registration:', error);
     return res.status(500).json({ message: 'Error confirming registration.' });
+  }
+};
+
+const resetPasswordToken = async (req, res) => {
+  const { customerEmail, token } = req.body;
+
+  try {
+    const confirmationResult = await passwordReset(customerEmail, token);
+
+    if (confirmationResult.success) {
+      return res.status(200).json({ message: 'Password reset email sent.' });
+    } else {
+      return res.status(500).json({ message: 'Failed to send password reset email.' });
+    }
+  } catch (error) {
+    console.error('Error Password reset email:', error);
+    return res.status(500).json({ message: 'Error password reset email' });
   }
 };
 
@@ -92,4 +109,4 @@ const confirmRestaurantRegistration = async (req, res) => {
 };
 
 
-module.exports = { confirmOrder, confirmOrderCompletion, confirmRegistration, cancelOrder, confirmRestaurantRegistration };
+module.exports = { confirmOrder, confirmOrderCompletion, confirmRegistration, cancelOrder, confirmRestaurantRegistration, resetPasswordToken };

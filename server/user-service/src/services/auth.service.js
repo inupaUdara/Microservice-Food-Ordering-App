@@ -1,10 +1,11 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require('crypto');
 const User = require("../models/user.model.js");
 const Driver = require("../models/driver.model.js");
 const Restaurant = require("../models/restaurant.model.js");
 const { JWT_SECRET } = require("../config/env.js");
-const { confirmRegistration } = require("./notification.service.js");
+const { confirmRegistration, resetPasswordEmail } = require("./notification.service.js");
 
 const registerUser = async (userData) => {
   const { email, password, role } = userData;
@@ -339,4 +340,71 @@ const updateRestaurantProfile = async (userId, updateData) => {
   );
 };
 
-module.exports = { registerUser, loginUser, getUserProfile, updateUserProfile, updateDriverProfile, updateRestaurantProfile };
+const generateResetToken = async (email) => {
+  const user = await User.findOne({ email });
+  if (!user) {
+    const error = new Error("No account found with this email");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // Generate token
+  const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
+  const resetTokenExpires = Date.now() + 3600000; // 1 hour from now
+
+  // Save token to user
+  user.resetPasswordToken = resetToken;
+  user.resetPasswordExpires = resetTokenExpires;
+  await user.save();
+
+  return resetToken;
+};
+
+const sendPasswordResetEmail = async (email) => {
+  try {
+    const resetToken = await generateResetToken(email);
+    // const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    // const emailOptions = {
+    //   to: email,
+    //   subject: 'Password Reset Request',
+    //   template: 'password-reset',
+    //   context: {
+    //     resetUrl,
+    //     expiryTime: '1 hour'
+    //   }
+    // };
+
+    await resetPasswordEmail(email, resetToken);
+    return { success: true, message: 'Password reset email sent successfully' };
+  } catch (error) {
+    console.error('Error sending password reset email:', error);
+    throw error;
+  }
+};
+
+const resetPassword = async (token, newPassword) => {
+  const user = await User.findOne({
+    resetPasswordToken: token,
+    resetPasswordExpires: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    const error = new Error("Password reset token is invalid or has expired");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // Hash new password
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  // Update password and clear reset token
+  user.password = hashedPassword;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+  await user.save();
+
+  return { success: true, message: 'Password has been reset successfully' };
+};
+
+module.exports = { registerUser, loginUser, getUserProfile, updateUserProfile, updateDriverProfile, updateRestaurantProfile, resetPassword, sendPasswordResetEmail };

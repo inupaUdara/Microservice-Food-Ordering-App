@@ -1,107 +1,112 @@
-import { useEffect, useState } from 'react';
-import IconEye from '../../../components/Icon/IconEye';
-import IconHeart from '../../../components/Icon/IconHeart';
-import { useDispatch } from 'react-redux';
-import { setPageTitle } from '../../../store/themeConfigSlice';
-import { getAllRestaurants } from '../../../services/restaurant/restaurant';
-import { Link, useNavigate } from 'react-router-dom';
-import Loader from '../../Components/Loader';
+"use client"
+
+import { useEffect, useState } from "react"
+import { useDispatch } from "react-redux"
+import { Link, useNavigate } from "react-router-dom"
+import { setPageTitle } from "../../../store/themeConfigSlice"
+import { getAllRestaurants } from "../../../services/restaurant/restaurant"
+import { RestaurantsGrid } from "./Restaurant/RestaurantGrid"
+import Loader from "../../Components/Loader"
 
 const Restaurants = () => {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    useEffect(() => {
-        dispatch(setPageTitle('Restaurants'));
-    });
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
 
-    const [restaurants, setRestaurants] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    dispatch(setPageTitle("Restaurants"))
+  }, [dispatch])
 
-    const handleRestaurantClick = (id: string) => {
-        navigate(`/restaurants/${id}`);
-    };
+  const [restaurants, setRestaurants] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-    useEffect(() => {
-        const fetchRestaurants = async () => {
-            try {
-                setLoading(true);
-                const data = await getAllRestaurants();
-                setRestaurants(data);
-                setError(null);
-            } catch (error) {
-                console.error('Error fetching restaurants:', error);
-                setError('Failed to load restaurants. Please try again later.');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchRestaurants();
-    }, []);
+  const handleRestaurantClick = (id: string) => {
+    navigate(`/restaurants/${id}`)
+  }
 
-    if (loading) {
-        return <Loader />;
+  useEffect(() => {
+    const fetchRestaurants = async () => {
+      try {
+        setLoading(true)
+        const data = await getAllRestaurants()
+
+        // Enhance the data with mock information for UI demonstration
+        // In a real app, this would come from the API
+        const enhancedData = data.map((restaurant: any) => ({
+          ...restaurant,
+          cuisineType: getRandomCuisines(),
+          priceRange: Math.floor(Math.random() * 4) + 1,
+          openingHours: "10:00 AM - 10:00 PM",
+          isOpen: Math.random() > 0.2, // 80% chance of being open
+        }))
+
+        setRestaurants(enhancedData)
+        setError(null)
+      } catch (error) {
+        console.error("Error fetching restaurants:", error)
+        setError("Failed to load restaurants. Please try again later.")
+      } finally {
+        setLoading(false)
+      }
     }
 
-    return (
-        <div>
-            <ul className="flex space-x-2 rtl:space-x-reverse">
-                <li>
-                    <Link to="/restaurants" className="text-primary hover:underline">
-                        Browse
-                    </Link>
-                </li>
-                <li className="before:content-['/'] ltr:before:mr-2 rtl:before:ml-2">
-                    <span>Restaurants</span>
-                </li>
-            </ul>
+    fetchRestaurants()
+  }, [])
 
-            <div className="mb-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-5">
-                {error ? (
-                    <div className="w-full text-center text-red-500 py-10">
-                        {error}
-                    </div>
-                ) : restaurants.length === 0 ? (
-                    <div className="w-full text-center text-gray-500 py-10">
-                        No restaurants found.
-                    </div>
-                ) : (
-                    restaurants.map((restaurant: any) => (
-                        <div
-                            key={restaurant.id}
-                            className="w-full bg-white shadow rounded border border-white-light dark:border-[#1b2e4b] dark:bg-[#191e3a]"
-                            onClick={() => handleRestaurantClick(restaurant.id)}
-                        >
-                            <div className="py-7 px-6">
-                                {/* Logo */}
-                                <div className="-mt-7 mb-5 -mx-6 rounded-tl rounded-tr h-[180px] overflow-hidden flex items-center justify-center bg-gray-100">
-                                    <img
-                                        src={restaurant.logo || '/assets/images/profile-28.jpeg'}
-                                        alt={restaurant.restaurantName}
-                                        className="w-28 h-28 object-cover rounded-full border"
-                                    />
-                                </div>
-                                {/* Restaurant Name */}
-                                <h5 className="text-[#3b3f5c] text-lg font-bold mb-2 dark:text-white-light text-center">
-                                    {restaurant.restaurantName}
-                                </h5>
-                                {/* City, State */}
-                                <p className="text-sm text-gray-500 mb-2 text-center">
-                                    {restaurant.restaurantAddress?.city}, {restaurant.restaurantAddress?.state}
-                                </p>
+  // Helper function to generate random cuisine types for demo
+  const getRandomCuisines = () => {
+    const cuisines = [
+      "Italian",
+      "Mexican",
+      "Chinese",
+      "Japanese",
+      "Indian",
+      "Thai",
+      "American",
+      "French",
+      "Mediterranean",
+      "Greek",
+    ]
+    const count = Math.floor(Math.random() * 3) + 1
+    const selected = []
 
-                                {/* Rating */}
-                                <div className="flex justify-center items-center text-primary font-semibold">
-                                    <IconHeart className="w-4 h-4 mr-1" />
-                                    {restaurant.rating || 0}
-                                </div>
-                            </div>
-                        </div>
-                    ))
-                )}
-            </div>
-        </div>
-    );
-};
+    for (let i = 0; i < count; i++) {
+      const randomIndex = Math.floor(Math.random() * cuisines.length)
+      if (!selected.includes(cuisines[randomIndex])) {
+        selected.push(cuisines[randomIndex])
+      }
+    }
 
-export default Restaurants;
+    return selected
+  }
+
+  if (loading) {
+    return <Loader />
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Breadcrumb */}
+      <ul className="flex space-x-2 rtl:space-x-reverse">
+        <li>
+          <Link to="/restaurants" className="text-blue-600 hover:underline">
+            Browse
+          </Link>
+        </li>
+        <li className="before:content-['/'] ltr:before:mr-2 rtl:before:ml-2">
+          <span>Restaurants</span>
+        </li>
+      </ul>
+
+      {/* Main content */}
+      <RestaurantsGrid
+        restaurants={restaurants}
+        loading={loading}
+        error={error}
+        onRestaurantClick={handleRestaurantClick}
+      />
+    </div>
+  )
+}
+
+export default Restaurants

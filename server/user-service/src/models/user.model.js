@@ -22,6 +22,16 @@ const userSchema = new mongoose.Schema(
     },
     lastLogin: { type: Date },
 
+    // Password reset fields
+    resetPasswordToken: {
+      type: String,
+      select: false
+    },
+    resetPasswordExpires: {
+      type: Date,
+      select: false
+    },
+
     // Fields for Customer
     firstName: { type: String, trim: true },
     lastName: { type: String, trim: true },

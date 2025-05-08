@@ -27,6 +27,26 @@ const confirmRegistration = async (
   }
 };
 
+const resetPasswordEmail = async (
+  customerEmail,
+  token
+) => {
+  try {
+    const response = await notificationServiceApi.post("api/v1/notifications/reset-password", {
+      customerEmail,
+      token,
+    });
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error calling notification service:",
+      error?.response?.data || error.message
+    );
+    throw new Error("Failed to send reset password email");
+  }
+};
+
 module.exports = {
   confirmRegistration,
+  resetPasswordEmail,
 };

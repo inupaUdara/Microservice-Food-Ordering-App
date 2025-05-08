@@ -38,4 +38,27 @@ const updateProfile = async (req, res, next) => {
   }
 }
 
-module.exports = { signUp, signIn, getProfile, updateProfile };
+const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    await authService.sendPasswordResetEmail(email);
+    res.status(200).json({ 
+      success: true, 
+      message: 'Password reset email sent successfully' 
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const resetPassword = async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body;
+    const result = await authService.resetPassword(token, newPassword);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { signUp, signIn, getProfile, updateProfile, forgotPassword, resetPassword };

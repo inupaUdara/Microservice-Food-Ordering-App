@@ -21,6 +21,7 @@ import ApprovedOrder from '../pages/Pages/RestaurantAdmin/orders/ApprovedOrder';
 import CompleteOrder from '../pages/Pages/RestaurantAdmin/orders/CompleteOrder';
 import EditMenuDetails from '../pages/Pages/RestaurantAdmin/RestaurantMenu/EditMenuDetails';
 import AdminDashboard from '../pages/Pages/RestaurantAdmin/AdminDashboard/AdminDashboard';
+import ResetPassword from '../pages/Authentication/ResetPassword';
 
 const Restaurants = lazy(() => import('../pages/Pages/Customer/Restaurants'));
 const Index = lazy(() => import('../pages/Index'));
@@ -208,8 +209,13 @@ const routes = [
         layout: 'blank',
     },
     {
-        path: '/auth/cover-password-reset',
+        path: '/auth/password-recovery',
         element: <RecoverIdCover />,
+        layout: 'blank',
+    },
+    {
+        path: '/auth/reset-password',
+        element: <ResetPassword />,
         layout: 'blank',
     },
     {
