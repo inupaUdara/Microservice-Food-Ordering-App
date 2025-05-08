@@ -34,7 +34,7 @@ const Restaurants = () => {
         // In a real app, this would come from the API
         const enhancedData = data.map((restaurant: any) => ({
           ...restaurant,
-          cuisineType: getRandomCuisines(),
+        //   cuisineType: getRandomCuisines(),
           priceRange: Math.floor(Math.random() * 4) + 1,
           openingHours: "10:00 AM - 10:00 PM",
           isOpen: Math.random() > 0.2, // 80% chance of being open
@@ -54,31 +54,31 @@ const Restaurants = () => {
   }, [])
 
   // Helper function to generate random cuisine types for demo
-  const getRandomCuisines = () => {
-    const cuisines = [
-      "Italian",
-      "Mexican",
-      "Chinese",
-      "Japanese",
-      "Indian",
-      "Thai",
-      "American",
-      "French",
-      "Mediterranean",
-      "Greek",
-    ]
-    const count = Math.floor(Math.random() * 3) + 1
-    const selected = []
+//   const getRandomCuisines = () => {
+//     const cuisines = [
+//       "Italian",
+//       "Mexican",
+//       "Chinese",
+//       "Japanese",
+//       "Indian",
+//       "Thai",
+//       "American",
+//       "French",
+//       "Mediterranean",
+//       "Greek",
+//     ]
+//     const count = Math.floor(Math.random() * 3) + 1
+//     const selected = []
 
-    for (let i = 0; i < count; i++) {
-      const randomIndex = Math.floor(Math.random() * cuisines.length)
-      if (!selected.includes(cuisines[randomIndex])) {
-        selected.push(cuisines[randomIndex])
-      }
-    }
+//     for (let i = 0; i < count; i++) {
+//       const randomIndex = Math.floor(Math.random() * cuisines.length)
+//       if (!selected.includes(cuisines[randomIndex])) {
+//         selected.push(cuisines[randomIndex])
+//       }
+//     }
 
-    return selected
-  }
+//     return selected
+//   }
 
   if (loading) {
     return <Loader />
