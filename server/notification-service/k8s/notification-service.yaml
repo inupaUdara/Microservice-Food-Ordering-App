@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Service
+metadata:
+  name: notification-service
+spec:
+  selector:
+    app: notification-service
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001
