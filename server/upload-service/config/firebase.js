@@ -2,11 +2,11 @@ const admin = require("firebase-admin");
 const path = require("path");
 
 // Import the service account file
-const serviceAccount = require("./firebaseServiceAccountKey.json");
+const serviceAccount = require("./serviceAccountKey.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  storageBucket: "foodorderingapp-bde2f.firebasestorage.app",
+  storageBucket: "foodorderapp-c4f78.firebasestorage.app",
 });
 
 const bucket = admin.storage().bucket();
