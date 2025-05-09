@@ -133,22 +133,49 @@ const ResetPassword = () => {
                             </div>
                             <form className="space-y-5" onSubmit={submitForm}>
                                 <div>
-                                    <label htmlFor="FirstName">Code</label>
-                                    <div className="relative text-white-dark">
-                                        <input
-                                            id="Code"
-                                            name="token"
-                                            type="text"
-                                            placeholder="Enter Code"
-                                            onChange={handleChange}
-                                            value={formData.token}
-                                            className="form-input ps-10 placeholder:text-white-dark"
-                                        />
-                                        <span className="absolute start-4 top-1/2 -translate-y-1/2">
-                                            <IconCode fill={true} />
-                                        </span>
+                                    <label htmlFor="Code">Code</label>
+                                    <div className="mt-2">
+                                        <div className="flex justify-center gap-2">
+                                            {[0, 1, 2, 3, 4, 5].map((index) => (
+                                                <input
+                                                    key={index}
+                                                    type="text"
+                                                    maxLength={1}
+                                                    className="form-input w-12 h-12 text-center text-xl"
+                                                    value={formData.token[index] || ''}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value;
+                                                        if (/^[0-9]?$/.test(value)) {
+                                                            const newToken = formData.token.split('');
+                                                            newToken[index] = value;
+                                                            setFormData({ ...formData, token: newToken.join('') });
+
+                                                            // Auto-focus next input if value is entered
+                                                            if (value && index < 5) {
+                                                                const nextInput = e.target.parentElement?.children[index + 1] as HTMLInputElement;
+                                                                if (nextInput) nextInput.focus();
+                                                            }
+                                                        }
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        // Handle backspace to go to previous input
+                                                        if (e.key === 'Backspace' && !formData.token[index] && index > 0) {
+                                                            const prevInput = e.currentTarget.parentElement?.children[index - 1] as HTMLInputElement;
+                                                            if (prevInput) prevInput.focus();
+                                                        }
+                                                    }}
+                                                    onPaste={(e) => {
+                                                        e.preventDefault();
+                                                        const pasteData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+                                                        if (pasteData) {
+                                                            setFormData({ ...formData, token: pasteData.padEnd(6, '').slice(0, 6) });
+                                                        }
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
+                                        <p className="text-xs text-center mt-2 text-gray-500">Enter the 6-digit code sent to your email</p>
                                     </div>
-                                    {/* {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>} */}
                                 </div>
                                 <div>
                                     <label htmlFor="Password">Password</label>
