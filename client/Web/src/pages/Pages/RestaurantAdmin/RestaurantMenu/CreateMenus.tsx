@@ -1,9 +1,10 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import type React from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createMenu } from '../../../../services/restaurant/restaurant';
 import { uploadImage } from '../../../../services/upload/upload';
-import Loader from '../../../Components/Loader';
 import Swal from 'sweetalert2';
+import { Clock, DollarSign, FileImage, Tag, ChefHat, Flame, Leaf, CheckCircle, PlusCircle, MinusCircle, Save, ArrowLeft, Info } from 'lucide-react';
 
 interface CustomizationOption {
     label: string;
@@ -54,6 +55,7 @@ const CreateMenus: React.FC = () => {
         isVeg: false,
         spicyLevel: 'Mild',
     });
+
     const showMessage = (msg = '', type = 'error') => {
         const toast: any = Swal.mixin({
             toast: true,
@@ -192,7 +194,7 @@ const CreateMenus: React.FC = () => {
 
             const payload = {
                 ...formData,
-                image: uploadedImageUrl, // now contains the uploaded URL or ID
+                image: uploadedImageUrl,
                 restaurantId: id,
                 price: Number(formData.price),
                 preparationTime: Number(formData.preparationTime),
@@ -226,184 +228,424 @@ const CreateMenus: React.FC = () => {
             setSubmitting(false);
         }
     };
+
     return (
-        <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-md">
-            <h2 className="text-2xl font-bold mb-6">Create New Menu Item</h2>
+        <div className="max-w-5xl mx-auto p-6 bg-gradient-to-b from-white to-gray-50 rounded-xl shadow-lg">
+            <div className="flex items-center justify-between mb-8">
+                <div>
+                    <button onClick={() => navigate('/menus')} className="flex items-center text-gray-600 hover:text-gray-900 transition-colors">
+                        <ArrowLeft className="w-4 h-4 mr-1" />
+                        <span>Back to Menus</span>
+                    </button>
+                    <h2 className="text-3xl font-bold mt-2 text-gray-800">Create New Menu Item</h2>
+                    <p className="text-gray-500">Add a new dish to your restaurant's menu</p>
+                </div>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data" action="/upload">
+            <form onSubmit={handleSubmit} className="space-y-8" encType="multipart/form-data" action="/upload">
                 {/* Basic Information Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Name*</label>
-                        <input name="name" value={formData.name} onChange={handleChange} className={`w-full p-2 border rounded ${errors.name ? 'border-red-500' : ''}`} placeholder="Menu item name" />
-                        {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-                    </div>
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <h3 className="text-xl font-semibold mb-4 text-gray-800 flex items-center">
+                        <Info className="w-5 h-5 mr-2 text-emerald-500" />
+                        Basic Information
+                    </h3>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Price*</label>
-                        <input
-                            type="number"
-                            name="price"
-                            value={formData.price}
-                            onChange={handleChange}
-                            step="0.01"
-                            className={`w-full p-2 border rounded ${errors.price ? 'border-red-500' : ''}`}
-                            placeholder="0.00"
-                        />
-                        {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price}</p>}
-                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-medium mb-1 text-gray-700">
+                                Name<span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none transition-all ${
+                                    errors.name ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                                }`}
+                                placeholder="Menu item name"
+                            />
+                            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                        </div>
 
-                    <div className="md:col-span-2">
-                        <label className="block text-sm font-medium mb-1">Description</label>
-                        <textarea name="description" value={formData.description} onChange={handleChange} className="w-full p-2 border rounded" rows={3} placeholder="Item description" />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Category*</label>
-                        <select name="category" value={formData.category} onChange={handleChange} className={`w-full p-2 border rounded ${errors.category ? 'border-red-500' : ''}`}>
-                            <option value="">Select Category</option>
-                            {categories.map((cat) => (
-                                <option key={cat} value={cat}>
-                                    {cat}
-                                </option>
-                            ))}
-                        </select>
-                        {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Image</label>
-                        <input type="file" accept="image/*" onChange={handleFileChange} className="w-full p-2 border rounded" />
-
-                        {formData.image && (
-                            <div className="mt-2">
-                                <p className="text-sm text-gray-600">Selected Image: {formData.image.name}</p>
-                                <img src={URL.createObjectURL(formData.image)} alt="Preview" className="mt-2 max-h-48 rounded border" />
+                        <div>
+                            <label className="block text-sm font-medium mb-1 text-gray-700">
+                                Price<span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <DollarSign className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <input
+                                    type="number"
+                                    name="price"
+                                    value={formData.price}
+                                    onChange={handleChange}
+                                    step="0.01"
+                                    className={`w-full pl-10 p-3 border rounded-lg focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none transition-all ${
+                                        errors.price ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                                    }`}
+                                    placeholder="0.00"
+                                />
                             </div>
-                        )}
+                            {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price}</p>}
+                        </div>
+
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium mb-1 text-gray-700">Description</label>
+                            <textarea
+                                name="description"
+                                value={formData.description}
+                                onChange={handleChange}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none transition-all"
+                                rows={3}
+                                placeholder="Describe your dish, including flavors and special features"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1 text-gray-700">
+                                Category<span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                name="category"
+                                value={formData.category}
+                                onChange={handleChange}
+                                className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none transition-all appearance-none bg-white ${
+                                    errors.category ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                                }`}
+                            >
+                                <option value="">Select Category</option>
+                                {categories.map((cat) => (
+                                    <option key={cat} value={cat}>
+                                        {cat}
+                                    </option>
+                                ))}
+                            </select>
+                            {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1 text-gray-700">Image</label>
+                            <div className="border border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+                                <div className="flex items-center justify-center">
+                                    <label className="flex flex-col items-center justify-center w-full cursor-pointer">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <FileImage className="w-8 h-8 text-gray-400 mb-2" />
+                                            <p className="text-sm text-gray-500">Click to upload or drag and drop</p>
+                                            <p className="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 10MB</p>
+                                        </div>
+                                        <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                                    </label>
+                                </div>
+                                {formData.image && (
+                                    <div className="mt-4 flex flex-col items-center">
+                                        <p className="text-sm text-gray-600 mb-2">{formData.image.name}</p>
+                                        <div className="relative w-full max-w-xs">
+                                            <img
+                                                src={URL.createObjectURL(formData.image) || '/placeholder.svg'}
+                                                alt="Preview"
+                                                className="rounded-lg border border-gray-200 shadow-sm w-full h-auto max-h-48 object-cover"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData((prev) => ({ ...prev, image: undefined }))}
+                                                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                            >
+                                                <MinusCircle className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {/* Additional Details Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Preparation Time (minutes)</label>
-                        <input type="number" name="preparationTime" value={formData.preparationTime} onChange={handleChange} min="0" className="w-full p-2 border rounded" />
-                    </div>
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <h3 className="text-xl font-semibold mb-4 text-gray-800 flex items-center">
+                        <Tag className="w-5 h-5 mr-2 text-emerald-500" />
+                        Additional Details
+                    </h3>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1">Spicy Level</label>
-                        <select name="spicyLevel" value={formData.spicyLevel} onChange={handleChange} className="w-full p-2 border rounded">
-                            {spicyLevels.map((level) => (
-                                <option key={level} value={level}>
-                                    {level}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="flex items-center">
-                        <input type="checkbox" name="isVeg" checked={formData.isVeg} onChange={handleChange} className="mr-2" />
-                        <label>Vegetarian</label>
-                    </div>
-
-                    <div className="flex items-center">
-                        <input type="checkbox" name="availability" checked={formData.availability} onChange={handleChange} className="mr-2" />
-                        <label>Available</label>
-                    </div>
-                </div>
-
-                {/* Ingredients Section */}
-                <div>
-                    <label className="block text-sm font-medium mb-1">Ingredients</label>
-                    <input onChange={handleIngredientsChange} className="w-full p-2 border rounded" placeholder="e.g., chicken, onions, garlic (comma separated)" />
-                </div>
-
-                {/* Dietary Tags Section */}
-                <div>
-                    <label className="block text-sm font-medium mb-2">Dietary Tags</label>
-                    <div className="flex flex-wrap gap-4">
-                        {dietaryTagOptions.map((tag) => (
-                            <label key={tag} className="flex items-center space-x-2">
-                                <input type="checkbox" checked={formData.dietaryTags.includes(tag)} onChange={(e) => handleDietaryTagChange(tag, e.target.checked)} />
-                                <span>{tag}</span>
-                            </label>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Customizations Section */}
-                <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Customizations</h3>
-
-                    {formData.customizations.map((customization, customizationIndex) => (
-                        <div key={customizationIndex} className="border p-4 rounded-lg space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Customization Name*</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-sm font-medium mb-1 text-gray-700">Preparation Time (minutes)</label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Clock className="h-5 w-5 text-gray-400" />
+                                </div>
                                 <input
-                                    value={customization.name}
-                                    onChange={(e) => handleCustomizationChange(customizationIndex, 'name', e.target.value)}
-                                    className="w-full p-2 border rounded"
-                                    placeholder="e.g., Size, Toppings"
+                                    type="number"
+                                    name="preparationTime"
+                                    value={formData.preparationTime}
+                                    onChange={handleChange}
+                                    min="0"
+                                    className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none transition-all"
                                 />
                             </div>
+                        </div>
 
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Type*</label>
-                                <select value={customization.type} onChange={(e) => handleCustomizationChange(customizationIndex, 'type', e.target.value)} className="w-full p-2 border rounded">
-                                    <option value="">Select Type</option>
-                                    {['dropdown', 'checkbox', 'radio'].map((t) => (
-                                        <option key={t} value={t}>
-                                            {t}
+                        <div>
+                            <label className="block text-sm font-medium mb-1 text-gray-700">Spicy Level</label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Flame className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <select
+                                    name="spicyLevel"
+                                    value={formData.spicyLevel}
+                                    onChange={handleChange}
+                                    className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none transition-all appearance-none bg-white"
+                                >
+                                    {spicyLevels.map((level) => (
+                                        <option key={level} value={level}>
+                                            {level}
                                         </option>
                                     ))}
                                 </select>
                             </div>
+                        </div>
 
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Options*</label>
-                                {customization.options.map((option, optionIndex) => (
-                                    <div key={optionIndex} className="flex gap-2 mb-2">
-                                        <input
-                                            type="text"
-                                            value={option.label}
-                                            onChange={(e) => handleOptionChange(customizationIndex, optionIndex, 'label', e.target.value)}
-                                            placeholder="Option label"
-                                            className="flex-1 p-2 border rounded"
-                                        />
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            value={option.price}
-                                            onChange={(e) => handleOptionChange(customizationIndex, optionIndex, 'price', e.target.value)}
-                                            placeholder="Price"
-                                            className="w-24 p-2 border rounded"
-                                        />
-                                        <button type="button" onClick={() => removeOption(customizationIndex, optionIndex)} className="text-red-500 hover:text-red-700">
-                                            Remove
-                                        </button>
-                                    </div>
-                                ))}
-                                <button type="button" onClick={() => addOption(customizationIndex)} className="text-blue-500 hover:text-blue-700 text-sm">
-                                    + Add Option
-                                </button>
+                        <div className="flex items-center space-x-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <input type="checkbox" id="isVeg" name="isVeg" checked={formData.isVeg} onChange={handleChange} className="w-5 h-5 text-emerald-500 rounded focus:ring-emerald-400" />
+                            <label htmlFor="isVeg" className="flex items-center cursor-pointer">
+                                <Leaf className="w-5 h-5 mr-2 text-emerald-500" />
+                                <span>Vegetarian</span>
+                            </label>
+                        </div>
+
+                        <div className="flex items-center space-x-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <input
+                                type="checkbox"
+                                id="availability"
+                                name="availability"
+                                checked={formData.availability}
+                                onChange={handleChange}
+                                className="w-5 h-5 text-emerald-500 rounded focus:ring-emerald-400"
+                            />
+                            <label htmlFor="availability" className="flex items-center cursor-pointer">
+                                <CheckCircle className="w-5 h-5 mr-2 text-emerald-500" />
+                                <span>Available on Menu</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Ingredients Section */}
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <h3 className="text-xl font-semibold mb-4 text-gray-800 flex items-center">
+                        <ChefHat className="w-5 h-5 mr-2 text-emerald-500" />
+                        Ingredients & Dietary Information
+                    </h3>
+
+                    <div className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-medium mb-1 text-gray-700">Ingredients</label>
+                            <div className="relative">
+                                <input
+                                    onChange={handleIngredientsChange}
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none transition-all"
+                                    placeholder="e.g., chicken, onions, garlic (comma separated)"
+                                />
                             </div>
+                            {formData.ingredients.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                    {formData.ingredients.map((ingredient, index) => (
+                                        <span key={index} className="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-1 rounded">
+                                            {ingredient}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
 
-                            <button type="button" onClick={() => removeCustomization(customizationIndex)} className="text-red-500 hover:text-red-700 text-sm">
-                                Remove Customization
+                        <div>
+                            <label className="block text-sm font-medium mb-2 text-gray-700">Dietary Tags</label>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                {dietaryTagOptions.map((tag) => (
+                                    <label
+                                        key={tag}
+                                        className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all ${
+                                            formData.dietaryTags.includes(tag) ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-gray-200 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.dietaryTags.includes(tag)}
+                                            onChange={(e) => handleDietaryTagChange(tag, e.target.checked)}
+                                            className="w-4 h-4 text-emerald-500 rounded focus:ring-emerald-400 mr-2"
+                                        />
+                                        <span className="capitalize">{tag}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Customizations Section */}
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-semibold text-gray-800">Customizations</h3>
+                        <button type="button" onClick={addCustomization} className="flex items-center text-sm font-medium text-emerald-600 hover:text-emerald-800 transition-colors">
+                            <PlusCircle className="w-4 h-4 mr-1" />
+                            Add Customization
+                        </button>
+                    </div>
+
+                    {formData.customizations.length === 0 ? (
+                        <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                            <p className="text-gray-500">No customizations added yet</p>
+                            <button
+                                type="button"
+                                onClick={addCustomization}
+                                className="mt-2 inline-flex items-center px-4 py-2 bg-emerald-500 text-white text-sm font-medium rounded-md hover:bg-emerald-600 transition-colors"
+                            >
+                                <PlusCircle className="w-4 h-4 mr-2" />
+                                Add Your First Customization
                             </button>
                         </div>
-                    ))}
+                    ) : (
+                        <div className="space-y-6">
+                            {formData.customizations.map((customization, customizationIndex) => (
+                                <div key={customizationIndex} className="border border-gray-200 rounded-lg overflow-hidden">
+                                    <div className="bg-gray-50 p-4 flex justify-between items-center border-b border-gray-200">
+                                        <h4 className="font-medium text-gray-700">Customization #{customizationIndex + 1}</h4>
+                                        <button type="button" onClick={() => removeCustomization(customizationIndex)} className="text-red-500 hover:text-red-700 transition-colors">
+                                            <MinusCircle className="w-5 h-5" />
+                                        </button>
+                                    </div>
 
-                    <button type="button" onClick={addCustomization} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                        + Add Customization
-                    </button>
+                                    <div className="p-4 space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium mb-1 text-gray-700">
+                                                    Name<span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    value={customization.name}
+                                                    onChange={(e) => handleCustomizationChange(customizationIndex, 'name', e.target.value)}
+                                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none transition-all"
+                                                    placeholder="e.g., Size, Toppings"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium mb-1 text-gray-700">
+                                                    Type<span className="text-red-500">*</span>
+                                                </label>
+                                                <select
+                                                    value={customization.type}
+                                                    onChange={(e) => handleCustomizationChange(customizationIndex, 'type', e.target.value)}
+                                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none transition-all appearance-none bg-white"
+                                                >
+                                                    <option value="dropdown">Dropdown</option>
+                                                    <option value="checkbox">Checkbox</option>
+                                                    <option value="radio">Radio</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <label className="block text-sm font-medium text-gray-700">
+                                                    Options<span className="text-red-500">*</span>
+                                                </label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => addOption(customizationIndex)}
+                                                    className="text-xs flex items-center text-emerald-600 hover:text-emerald-800 transition-colors"
+                                                >
+                                                    <PlusCircle className="w-3 h-3 mr-1" />
+                                                    Add Option
+                                                </button>
+                                            </div>
+
+                                            {customization.options.length === 0 ? (
+                                                <div className="text-center py-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                                                    <p className="text-sm text-gray-500">No options added yet</p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => addOption(customizationIndex)}
+                                                        className="mt-1 text-xs text-emerald-600 hover:text-emerald-800 transition-colors"
+                                                    >
+                                                        Add your first option
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-2">
+                                                    {customization.options.map((option, optionIndex) => (
+                                                        <div key={optionIndex} className="flex gap-2 items-center">
+                                                            <input
+                                                                type="text"
+                                                                value={option.label}
+                                                                onChange={(e) => handleOptionChange(customizationIndex, optionIndex, 'label', e.target.value)}
+                                                                placeholder="Option label"
+                                                                className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none transition-all"
+                                                            />
+                                                            <div className="relative w-24">
+                                                                <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                                                    <DollarSign className="h-4 w-4 text-gray-400" />
+                                                                </div>
+                                                                <input
+                                                                    type="number"
+                                                                    step="0.01"
+                                                                    value={option.price}
+                                                                    onChange={(e) => handleOptionChange(customizationIndex, optionIndex, 'price', e.target.value)}
+                                                                    placeholder="Price"
+                                                                    className="w-full pl-7 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none transition-all"
+                                                                />
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeOption(customizationIndex, optionIndex)}
+                                                                className="text-red-500 hover:text-red-700 transition-colors"
+                                                            >
+                                                                <MinusCircle className="w-5 h-5" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Submit Button */}
-                <div className="pt-4">
-                    <button type="submit" disabled={submitting} className={`w-full md:w-auto px-6 py-2 rounded-md text-white ${submitting ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'}`}>
-                        {submitting ? 'Creating Menu...' : 'Create Menu'}
+                <div className="flex justify-end space-x-4">
+                    <button type="button" onClick={() => navigate('/menus')} className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={submitting}
+                        className={`px-6 py-3 rounded-lg text-white font-medium flex items-center ${
+                            submitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 transition-colors'
+                        }`}
+                    >
+                        {submitting ? (
+                            <>
+                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    ></path>
+                                </svg>
+                                Creating Menu...
+                            </>
+                        ) : (
+                            <>
+                                <Save className="w-5 h-5 mr-2" />
+                                Create Menu
+                            </>
+                        )}
                     </button>
                 </div>
             </form>
