@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState, useRef } from 'react';
 import { setPageTitle } from '../../store/themeConfigSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import IconHome from '../../components/Icon/IconHome';
@@ -15,7 +15,10 @@ import { updateFailure, updateStart, updateSuccess } from '../../store/userConfi
 import Swal from 'sweetalert2';
 import IconLockDots from '../../components/Icon/IconLockDots';
 import IconWheel from '../../components/Icon/IconWheel';
+import IconX from '../../components/Icon/IconX';
 import { updateMe } from '../../services/me/me';
+import { uploadImage, updateImage } from '../../services/upload/upload';
+import IconFile from '../../components/Icon/IconFile';
 
 const AccountSetting = () => {
     const currentUser = useSelector((state: IRootState) => state.userConfig.currentUser);
@@ -23,6 +26,15 @@ const AccountSetting = () => {
     const [tabs, setTabs] = useState<string>('profile');
     const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState<any>({});
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const documentFileInputRef = useRef<HTMLInputElement>(null);
+
+    // Preview states
+    const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
+    const [documentPreviews, setDocumentPreviews] = useState<{[key: string]: string}>({});
+
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -39,10 +51,13 @@ const AccountSetting = () => {
             vehicleType: '',
             vehicleNumber: '',
             licenseNumber: '',
+            profilePicture: '',
+            documents: [],
         }),
         ...(currentUser?.role === 'restaurant-admin' && {
             restaurantName: '',
             restaurantPhone: '',
+            logo: '',
             restaurantAddress: {
                 street: '',
                 city: '',
@@ -73,14 +88,34 @@ const AccountSetting = () => {
                     vehicleType: currentUser.driverProfile.vehicleType,
                     vehicleNumber: currentUser.driverProfile.vehicleNumber,
                     licenseNumber: currentUser.driverProfile.licenseNumber,
+                    profilePicture: currentUser.driverProfile.profilePicture,
+                    documents: currentUser.driverProfile.documents || [],
                 }),
                 ...(currentUser.restaurantProfile && {
                     restaurantName: currentUser.restaurantProfile.restaurantName,
                     restaurantPhone: currentUser.restaurantProfile.restaurantPhone,
                     restaurantAddress: currentUser.restaurantProfile.restaurantAddress,
                     openingHours: currentUser.restaurantProfile.openingHours,
+                    logo: currentUser.restaurantProfile.logo,
                 }),
             });
+
+            // Set initial previews
+            if (currentUser.restaurantProfile?.logo) {
+                setLogoPreview(currentUser.restaurantProfile.logo);
+            }
+
+            if (currentUser.driverProfile?.profilePicture) {
+                setProfilePicturePreview(currentUser.driverProfile.profilePicture);
+            }
+
+            if (currentUser.driverProfile?.documents?.length > 0) {
+                const docPreviews = {};
+                currentUser.driverProfile.documents.forEach(doc => {
+                    docPreviews[doc.type] = doc.url;
+                });
+                setDocumentPreviews(docPreviews);
+            }
         }
     }, [currentUser, dispatch]);
 
@@ -90,7 +125,7 @@ const AccountSetting = () => {
     };
 
     const validatePhone = (phone: string) => {
-        const re = /^\+?(\d[\d-. ]+)?(\([\d-. ]+\))?[\d-. ]+\d$/;
+        const re = /^\+?(\d[\d-. ]+)?($$[\d-. ]+$$)?[\d-. ]+\d$/;
         const digits = phone.replace(/\D/g, '');
         if (!re.test(phone)) return 'Invalid phone number format';
         if (digits.length < 10) return 'Phone number must have at least 10 digits';
@@ -156,6 +191,135 @@ const AccountSetting = () => {
         setFormData(prev => ({ ...prev, openingHours: updatedHours }));
     };
 
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'profilePicture') => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Create a preview
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            if (type === 'logo') {
+                setLogoPreview(event.target?.result as string);
+            } else {
+                setProfilePicturePreview(event.target?.result as string);
+            }
+        };
+        reader.readAsDataURL(file);
+
+        try {
+            setIsUploading(true);
+
+            let imageUrl;
+            if (type === 'logo' && currentUser?.restaurantProfile?.logo) {
+                // Extract ID from the existing logo URL if needed
+                const logoId = extractImageId(currentUser.restaurantProfile.logo);
+
+                    const response = await uploadImage(file);
+                    imageUrl = response.url;
+
+                setFormData(prev => ({ ...prev, logo: imageUrl }));
+            } else if (type === 'profilePicture' && currentUser?.driverProfile?.profilePicture) {
+                const pictureId = extractImageId(currentUser.driverProfile.profilePicture);
+                // if (pictureId) {
+                //     const response = await updateImage(pictureId, file);
+                //     imageUrl = response.url;
+                // } else {
+                    const response = await uploadImage(file);
+                    imageUrl = response.url;
+                // }
+                setFormData(prev => ({ ...prev, profilePicture: imageUrl }));
+            } else {
+                const response = await uploadImage(file);
+                imageUrl = response.url;
+                if (type === 'logo') {
+                    setFormData(prev => ({ ...prev, logo: imageUrl }));
+                } else {
+                    setFormData(prev => ({ ...prev, profilePicture: imageUrl }));
+                }
+            }
+
+            showSuccessMessage('Image uploaded successfully');
+        } catch (error) {
+            showErrorMessage('Failed to upload image');
+            console.error('Upload error:', error);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>, docType: string) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Create a preview
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            setDocumentPreviews(prev => ({
+                ...prev,
+                [docType]: event.target?.result as string
+            }));
+        };
+        reader.readAsDataURL(file);
+
+        try {
+            setIsUploading(true);
+
+            // Find if document of this type already exists
+            const existingDocIndex = formData.documents?.findIndex(doc => doc.type === docType);
+            let imageUrl;
+
+            if (existingDocIndex !== -1 && existingDocIndex !== undefined) {
+                const docId = extractImageId(formData.documents[existingDocIndex].url);
+                if (docId) {
+                    const response = await updateImage(docId, file);
+                    imageUrl = response.url;
+                } else {
+                    const response = await uploadImage(file);
+                    imageUrl = response.url;
+                }
+
+                // Update the existing document
+                const updatedDocs = [...formData.documents];
+                updatedDocs[existingDocIndex] = {
+                    ...updatedDocs[existingDocIndex],
+                    url: imageUrl
+                };
+                setFormData(prev => ({ ...prev, documents: updatedDocs }));
+            } else {
+                // Add new document
+                const response = await uploadImage(file);
+                imageUrl = response.url;
+
+                const newDoc = {
+                    type: docType,
+                    url: imageUrl,
+                    verified: false
+                };
+
+                setFormData(prev => ({
+                    ...prev,
+                    documents: [...(prev.documents || []), newDoc]
+                }));
+            }
+
+            showSuccessMessage('Document uploaded successfully');
+        } catch (error) {
+            showErrorMessage('Failed to upload document');
+            console.error('Upload error:', error);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    // Helper function to extract image ID from URL if needed
+    const extractImageId = (url: string): string | null => {
+        // This is a placeholder - you'll need to implement based on your URL structure
+        // Example: if your URL is like "https://example.com/images/abc123.jpg"
+        // you might extract "abc123" as the ID
+        const match = url.match(/\/([^\/]+)\.[^\.]+$/);
+        return match ? match[1] : null;
+    };
+
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -173,9 +337,14 @@ const AccountSetting = () => {
             }),
         };
 
-        setErrors(validationErrors);
+        // Filter out empty error messages
+        const filteredErrors = Object.fromEntries(
+            Object.entries(validationErrors).filter(([_, value]) => value !== '')
+        );
 
-        if (Object.values(validationErrors).some(error => error !== '')) {
+        setErrors(filteredErrors);
+
+        if (Object.keys(filteredErrors).length > 0) {
             showErrorMessage('Please correct the form errors');
             return;
         }
@@ -183,7 +352,6 @@ const AccountSetting = () => {
         try {
             dispatch(updateStart());
             const res = await updateMe(formData);
-
 
             if (!res.success === true) {
                 dispatch(updateFailure(res.message));
@@ -195,6 +363,26 @@ const AccountSetting = () => {
         } catch (error) {
             dispatch(updateFailure((error as Error).message));
             showErrorMessage((error as Error).message);
+        }
+    };
+
+    const triggerFileInput = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const triggerDocumentFileInput = (docType: string) => {
+        if (documentFileInputRef.current) {
+            documentFileInputRef.current.setAttribute('data-doc-type', docType);
+            documentFileInputRef.current.click();
+        }
+    };
+
+    const handleDocumentFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const docType = e.target.getAttribute('data-doc-type');
+        if (docType) {
+            handleDocumentUpload(e, docType);
         }
     };
 
@@ -317,6 +505,38 @@ const AccountSetting = () => {
                     <form className="border border-[#ebedf2] dark:border-[#191e3a] rounded-md p-4 mb-5 bg-white dark:bg-black" onSubmit={handleSubmit}>
                         <h6 className="text-lg font-bold mb-5">Restaurant Information</h6>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            {/* Restaurant Logo Upload */}
+                            <div className="sm:col-span-2 mb-5">
+                                <label className="block mb-2">Restaurant Logo</label>
+                                <div className="flex items-center gap-5">
+                                    <div className="w-24 h-24 rounded-full overflow-hidden border border-gray-300 flex items-center justify-center bg-gray-100">
+                                        {logoPreview ? (
+                                            <img src={logoPreview || "/placeholder.svg"} alt="Restaurant Logo" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <IconHome className="w-12 h-12 text-gray-400" />
+                                        )}
+                                    </div>
+                                    <div>
+                                        <button
+                                            type="button"
+                                            onClick={triggerFileInput}
+                                            className="btn btn-outline-primary"
+                                            disabled={isUploading}
+                                        >
+                                            {isUploading ? 'Uploading...' : 'Upload Logo'}
+                                        </button>
+                                        <p className="text-xs text-gray-500 mt-1">Recommended: Square image, at least 200x200px</p>
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => handleImageUpload(e, 'logo')}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
                             <div>
                                 <label htmlFor="restaurantName">Restaurant Name</label>
                                 <input
@@ -341,7 +561,7 @@ const AccountSetting = () => {
                                 />
                                 {errors.restaurantPhone && <p className="text-red-500 text-sm mt-1">{errors.restaurantPhone}</p>}
                             </div>
-                            {/* Add restaurant address fields here */}
+                            {/* Restaurant address fields */}
                             <div>
                                 <label htmlFor="restaurantAddress.street">Street</label>
                                 <input
@@ -420,16 +640,8 @@ const AccountSetting = () => {
                                         />
                                     </div>
                                 ))}
-                                {/* <button
-                                    type="button"
-                                    onClick={() => setFormData(prev => ({ ...prev, openingHours: [...prev.openingHours, { open: '', close: '' }] }))}
-                                    className="btn btn-secondary"
-                                >
-                                    Add Opening Hour
-                                </button> */}
                                 {errors.openingHours && <p className="text-red-500 text-sm mt-1">{errors.openingHours}</p>}
                             </div>
-
 
                             <div className="sm:col-span-2">
                                 <button type="submit" className="btn btn-primary">
@@ -444,6 +656,38 @@ const AccountSetting = () => {
                     <form className="border border-[#ebedf2] dark:border-[#191e3a] rounded-md p-4 mb-5 bg-white dark:bg-black" onSubmit={handleSubmit}>
                         <h6 className="text-lg font-bold mb-5">Vehicle Information</h6>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            {/* Profile Picture Upload */}
+                            <div className="sm:col-span-2 mb-5">
+                                <label className="block mb-2">Profile Picture</label>
+                                <div className="flex items-center gap-5">
+                                    <div className="w-24 h-24 rounded-full overflow-hidden border border-gray-300 flex items-center justify-center bg-gray-100">
+                                        {profilePicturePreview ? (
+                                            <img src={profilePicturePreview || "/placeholder.svg"} alt="Profile" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <IconUser className="w-12 h-12 text-gray-400" />
+                                        )}
+                                    </div>
+                                    <div>
+                                        <button
+                                            type="button"
+                                            onClick={triggerFileInput}
+                                            className="btn btn-outline-primary"
+                                            disabled={isUploading}
+                                        >
+                                            {isUploading ? 'Uploading...' : 'Upload Photo'}
+                                        </button>
+                                        <p className="text-xs text-gray-500 mt-1">Recommended: Square image, at least 200x200px</p>
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={(e) => handleImageUpload(e, 'profilePicture')}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
                             <div>
                                 <label htmlFor="vehicleType">Vehicle Type</label>
                                 <select
@@ -484,7 +728,45 @@ const AccountSetting = () => {
                                 {errors.licenseNumber && <p className="text-red-500 text-sm mt-1">{errors.licenseNumber}</p>}
                             </div>
 
-                            <div className="sm:col-span-2">
+                            {/* Document Uploads */}
+                            <div className="sm:col-span-2 mt-4">
+                                <h6 className="text-md font-semibold mb-3">Documents</h6>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    {['license', 'insurance', 'vehicle-registration'].map((docType) => (
+                                        <div key={docType} className="border border-gray-200 rounded-md p-4">
+                                            <h6 className="font-medium mb-2 capitalize">{docType.replace('-', ' ')}</h6>
+                                            <div className="h-40 mb-3 border border-dashed border-gray-300 rounded-md flex items-center justify-center bg-gray-50 overflow-hidden">
+                                                {documentPreviews[docType] ? (
+                                                    <img src={documentPreviews[docType] || "/placeholder.svg"} alt={docType} className="w-full h-full object-contain" />
+                                                ) : (
+                                                    <div className="text-center p-4">
+                                                        <IconFile className="w-10 h-10 mx-auto text-gray-400 mb-2" />
+                                                        <p className="text-xs text-gray-500">No document uploaded</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => triggerDocumentFileInput(docType)}
+                                                className="btn btn-sm btn-outline-primary w-full"
+                                                disabled={isUploading}
+                                            >
+                                                {isUploading ? 'Uploading...' : documentPreviews[docType] ? 'Update Document' : 'Upload Document'}
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <input
+                                        ref={documentFileInputRef}
+                                        type="file"
+                                        accept="image/*,.pdf"
+                                        className="hidden"
+                                        data-doc-type=""
+                                        onChange={handleDocumentFileChange}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="sm:col-span-2 mt-4">
                                 <button type="submit" className="btn btn-primary">
                                     Save Changes
                                 </button>
