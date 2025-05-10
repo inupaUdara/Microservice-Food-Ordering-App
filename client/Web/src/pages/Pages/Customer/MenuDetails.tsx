@@ -360,11 +360,11 @@ const MenuDetails = ({ restaurant }: MenuDetailsProps) => {
                                         {/* If customized, show both prices */}
                                         {customizedItems[item._id]?.isCustomized && item.price !== getItemPrice(item) ? (
                                             <>
-                                                <span className="text-sm text-gray-500 dark:text-gray-400 line-through">${item.price.toFixed(2)}</span>
-                                                <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">${getItemPrice(item).toFixed(2)}</span>
+                                                <span className="text-sm text-gray-500 dark:text-gray-400 line-through">LKR.{item.price.toFixed(2)}</span>
+                                                <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">LKR.{getItemPrice(item).toFixed(2)}</span>
                                             </>
                                         ) : (
-                                            <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">${getItemPrice(item).toFixed(2)}</span>
+                                            <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">LKR.{getItemPrice(item).toFixed(2)}</span>
                                         )}
                                     </div>
                                     <div className="flex space-x-2">

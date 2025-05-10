@@ -5,7 +5,7 @@ import { getAllMenuItems, updateMenu } from '../../../../services/restaurant/res
 import { uploadImage, getImageById } from '../../../../services/upload/upload';
 import Loader from '../../../Components/Loader';
 import Swal from 'sweetalert2';
-import { Clock, DollarSign, FileImage, Tag, ChefHat, Flame, Leaf, CheckCircle, PlusCircle, MinusCircle, Save, ArrowLeft, Info, Trash2, AlertTriangle } from 'lucide-react';
+import { Clock, FileImage, Tag, ChefHat, Flame, Leaf, CheckCircle, PlusCircle, MinusCircle, Save, ArrowLeft, Info, Trash2, AlertTriangle } from 'lucide-react';
 
 interface CustomizationOption {
     label: string;
@@ -332,14 +332,14 @@ const EditMenuDetails: React.FC = () => {
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <DollarSign className="h-5 w-5 text-gray-400" />
+                                    <h1 className=" text-gray-400">LKR.</h1>
                                 </div>
                                 <input
                                     type="number"
                                     name="price"
                                     value={formData.price}
                                     onChange={handleChange}
-                                    step="0.01"
+                                    step="1.00"
                                     className={`w-full pl-10 p-3 border rounded-lg focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none transition-all ${
                                         errors.price ? 'border-red-500 bg-red-50' : 'border-gray-300'
                                     }`}
@@ -643,12 +643,12 @@ const EditMenuDetails: React.FC = () => {
                                                                 className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-300 focus:border-emerald-500 outline-none transition-all"
                                                             />
                                                             <div className="relative w-24">
-                                                                <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                                                                    <DollarSign className="h-4 w-4 text-gray-400" />
-                                                                </div>
+                                                                {/* <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                                                  
+                                                                </div> */}
                                                                 <input
                                                                     type="number"
-                                                                    step="0.01"
+                                                                    step="1"
                                                                     value={option.price}
                                                                     onChange={(e) => handleOptionChange(customizationIndex, optionIndex, 'price', e.target.value)}
                                                                     placeholder="Price"
