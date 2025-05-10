@@ -192,7 +192,7 @@ const Menus = () => {
                 </div>
 
                 <Link to={'/create-menu'}>
-                    <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg transition-colors flex items-center shadow-sm">
+                    <button className="bg-[#4361ee] hover:bg-[#2d50ed] text-white px-5 py-2.5 rounded-lg transition-colors flex items-center shadow-sm">
                         <Plus className="w-5 h-5 mr-2" />
                         <span>Create New Item</span>
                     </button>
@@ -212,7 +212,7 @@ const Menus = () => {
                             placeholder="Search menu items..."
                             value={searchTerm}
                             onChange={handleSearch}
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-700 focus:border-emerald-500 outline-none transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#4361ee] dark:focus:ring-[#2b4ff1] focus:border-[#3d5ef0] outline-none transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                         />
                     </div>
 
@@ -224,7 +224,7 @@ const Menus = () => {
                         <select
                             value={selectedCategory}
                             onChange={(e) => handleCategoryFilter(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-700 focus:border-emerald-500 outline-none transition-all appearance-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#4361ee] dark:focus:ring-[#2b4ff1] focus:border-[#3d5ef0] outline-none transition-all appearance-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                         >
                             <option value="">All Categories</option>
                             <option value="Appetizers">Appetizers</option>

@@ -31,3 +31,8 @@ export const getOutForDeliveryStats = async () => {
     const response = await api.get('/orders/api/v1/orders/restaurant/stats/out-for-delivery');
     return response.data;
 };
+
+export const getItemsSoldByRestaurant = async () => {
+    const response = await api.get('/orders/api/v1/orders/restaurant/items-sold-out-for-delivery');
+    return response.data;
+};
