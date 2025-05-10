@@ -1,8 +1,11 @@
-require('./src/config/env');  // Import and load environment variables from env.js
+require('./src/config/env');
+require('./src/websocket/wsServer');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const notificationRoutes = require('./src/routes/notification.routes');  // Import routes for notification
+const connectToDatabase = require("./src/config/mongodb.js");
+const notificationRoutes = require('./src/routes/notification.routes');
+
 
 const { PORT } = require('./src/config/env');  
 
@@ -16,6 +19,7 @@ app.use(bodyParser.json());
 app.use('/api/v1/notifications', notificationRoutes);
 
 // Start the server on the specified PORT
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`Notification service running on port ${PORT}`);
+  await connectToDatabase();
 });

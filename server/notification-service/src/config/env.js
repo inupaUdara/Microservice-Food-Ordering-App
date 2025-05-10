@@ -9,7 +9,8 @@ const {
   SMTP_HOST, 
   SMTP_PORT, 
   SMTP_USER, 
-  SMTP_PASS 
+  SMTP_PASS, 
+  MONGODB_URI,
 } = process.env;  //environment variables
 
 // Export environment variables for use in the application
@@ -21,5 +22,6 @@ module.exports = {
   SMTP_HOST,
   SMTP_PORT,
   SMTP_USER,
-  SMTP_PASS
+  SMTP_PASS,
+  MONGODB_URI,
 };
