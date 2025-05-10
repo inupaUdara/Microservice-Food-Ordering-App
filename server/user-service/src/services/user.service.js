@@ -4,7 +4,7 @@ const User = require("../models/user.model");
 
 const getAllUsers = async (filter = {}) => {
   const users = await User.find(filter)
-    .select("-password") // Exclude passwords
+    .select("-password") 
     .populate("driverProfile")
     .populate("restaurantProfile");
 
@@ -27,7 +27,8 @@ const getAllCustomers = async () => {
     const customers = await User.find({ role: "customer" })
         .select("-password") // Exclude passwords
         .populate("driverProfile")
-        .populate("restaurantProfile");
+        .populate("restaurantProfile")
+        .sort({ createdAt: -1 });
     
     return customers.map((user) => ({
         id: user._id,
@@ -42,7 +43,7 @@ const getAllCustomers = async () => {
 }
 
 const getAllRestaurants = async (isApproved) => {
-  const filter = {}; // Default filter
+  const filter = {}; 
 
   // Apply filter only if isApproved is explicitly passed
   if (typeof isApproved === "boolean") {
@@ -52,7 +53,7 @@ const getAllRestaurants = async (isApproved) => {
   const restaurants = await Restaurant.find(filter).populate(
     "userId",
     "email firstName lastName phone"
-  );
+  ).sort({ createdAt: -1 });
 
   return restaurants.map((restaurant) => ({
     id: restaurant._id,
@@ -138,4 +139,40 @@ const deleteUser = async (userId) => {
   return { message: "User deleted successfully" };
 };
 
-module.exports = { getAllUsers, getAllRestaurants, getAllDeliveryPersons, getAllCustomers, getUserById, deleteUser };
+
+const getUserStats = async () => {
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const [total, today, thisWeek, thisMonth, roleStats] = await Promise.all([
+    User.countDocuments(),
+    User.countDocuments({ createdAt: { $gte: startOfDay } }),
+    User.countDocuments({ createdAt: { $gte: startOfWeek } }),
+    User.countDocuments({ createdAt: { $gte: startOfMonth } }),
+    User.aggregate([
+      {
+        $group: {
+          _id: "$role",
+          count: { $sum: 1 }
+        }
+      }
+    ])
+  ]);
+
+  const roles = {};
+  roleStats.forEach(r => {
+    roles[r._id] = r.count;
+  });
+
+  return {
+    totalUsers: total,
+    newUsersToday: today,
+    newUsersThisWeek: thisWeek,
+    newUsersThisMonth: thisMonth,
+    usersByRole: roles
+  };
+};
+
+module.exports = { getAllUsers, getAllRestaurants, getAllDeliveryPersons, getAllCustomers, getUserById, deleteUser, getUserStats };

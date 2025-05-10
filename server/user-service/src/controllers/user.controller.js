@@ -59,4 +59,14 @@ const deleteUser = async (req, res, next) => {
   }
 }
 
-module.exports = { getAllUsers, getAllRestaurants, getAllDeliveryPersons, getAllCustomers, getUserById, deleteUser };
+const getUserStatistics = async (req, res) => {
+  try {
+    const stats = await userService.getUserStats();
+    res.status(200).json(stats);
+  } catch (error) {
+    console.error("Error getting user statistics:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+module.exports = { getAllUsers, getAllRestaurants, getAllDeliveryPersons, getAllCustomers, getUserById, deleteUser, getUserStatistics };
