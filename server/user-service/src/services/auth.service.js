@@ -283,7 +283,7 @@ const updateUserProfile = async (userId, updateData) => {
     const updatedUser = await User.findById(userId)
       .populate({
         path: 'driverProfile',
-        select: '-documents -activeOrders -__v'
+        select: '-activeOrders -__v'
       })
       .populate({
         path: 'restaurantProfile',
@@ -304,7 +304,7 @@ const updateDriverProfile = async (userId, updateData) => {
     throw new Error('Driver profile not found');
   }
 
-  const allowedFields = ['vehicleType', 'vehicleNumber', 'licenseNumber', 'currentLocation'];
+  const allowedFields = ['vehicleType', 'vehicleNumber', 'licenseNumber', 'currentLocation', 'documents', 'profilePicture'];
   const driverUpdates = {};
   
   allowedFields.forEach(field => {
@@ -363,17 +363,6 @@ const generateResetToken = async (email) => {
 const sendPasswordResetEmail = async (email) => {
   try {
     const resetToken = await generateResetToken(email);
-    // const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-
-    // const emailOptions = {
-    //   to: email,
-    //   subject: 'Password Reset Request',
-    //   template: 'password-reset',
-    //   context: {
-    //     resetUrl,
-    //     expiryTime: '1 hour'
-    //   }
-    // };
 
     await resetPasswordEmail(email, resetToken);
     return { success: true, message: 'Password reset email sent successfully' };
