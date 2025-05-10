@@ -61,9 +61,10 @@ const createOrder = async (
     await sendOrderConfirmation(customerEmail, customerPhone, {
       customerName: customerName,
       orderId: savedOrder._id,
-      items: savedOrder.products?.map(
-        (item) => `${item.name} (x${item.quantity}) - $${item.price}`
-      ) || [],
+      items:
+        savedOrder.products?.map(
+          (item) => `${item.name} (x${item.quantity}) - $${item.price}`
+        ) || [],
     });
     console.log("Order confirmation notification sent successfully.");
   } catch (err) {
@@ -202,10 +203,14 @@ const cancelOrder = async (userId, orderId) => {
 };
 
 const getOutForDeliveryStats = async (restaurantId) => {
+  if (!restaurantId || typeof restaurantId !== "string") {
+    throw new Error("Invalid restaurantId");
+  }
+
   const stats = await Order.aggregate([
     {
       $match: {
-        restaurantId: mongoose.Types.ObjectId(restaurantId),
+        restaurantId: restaurantId,
         status: "out_for_delivery",
       },
     },
