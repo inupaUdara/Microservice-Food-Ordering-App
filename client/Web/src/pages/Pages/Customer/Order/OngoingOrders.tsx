@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { setPageTitle } from "../../../../store/themeConfigSlice"
@@ -88,7 +86,7 @@ const OngoingOrders = () => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "USD",
+      currency: "LKR",
     }).format(amount)
   }
 
