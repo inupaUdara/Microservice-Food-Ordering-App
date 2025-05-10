@@ -7,6 +7,10 @@ import Loader from '../../../Components/Loader';
 import Swal from 'sweetalert2';
 import { geocodeAddress } from '../../../../services/location/mapService';
 import { assignDriverToDelivery } from '../../../../services/driver/driver';
+import DateSortingHeader from './components/DateSortingHeader';
+import { sortByDate } from './utils/date-sorting';
+
+type SortDirection = 'asc' | 'desc' | null;
 
 const ApprovedOrder = () => {
     const dispatch = useDispatch();
@@ -24,6 +28,7 @@ const ApprovedOrder = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedRecord, setSelectedRecord] = useState();
+    const [dateSortDirection, setDateSortDirection] = useState<SortDirection>(null);
 
     const fetchOrderAndAssignDriver = async (orderId: string) => {
         setLoading(true);
@@ -32,31 +37,20 @@ const ApprovedOrder = () => {
             setOrder(data);
             setError(null);
 
-            const restaurantAddress = [
-                data.restaurant.restaurantAddress.street,
-                data.restaurant.restaurantAddress.city,
-                data.restaurant.restaurantAddress.country
-            ].filter(Boolean).join(', ');
+            const restaurantAddress = [data.restaurant.restaurantAddress.street, data.restaurant.restaurantAddress.city, data.restaurant.restaurantAddress.country].filter(Boolean).join(', ');
 
-            const customerAddress = [
-                data.shippingAddress.street,
-                data.shippingAddress.city,
-                data.shippingAddress.country
-            ].filter(Boolean).join(', ');
+            const customerAddress = [data.shippingAddress.street, data.shippingAddress.city, data.shippingAddress.country].filter(Boolean).join(', ');
 
-            const [restaurantCoords, customerCoords] = await Promise.all([
-                geocodeAddress(restaurantAddress),
-                geocodeAddress(customerAddress)
-            ]);
+            const [restaurantCoords, customerCoords] = await Promise.all([geocodeAddress(restaurantAddress), geocodeAddress(customerAddress)]);
 
             const restaurantLocation = {
-                type: "Point",
-                coordinates: [restaurantCoords.lng, restaurantCoords.lat]
+                type: 'Point',
+                coordinates: [restaurantCoords.lng, restaurantCoords.lat],
             };
 
             const deliveryLocation = {
-                type: "Point",
-                coordinates: [customerCoords.lng, customerCoords.lat]
+                type: 'Point',
+                coordinates: [customerCoords.lng, customerCoords.lat],
             };
 
             await assignDriverToDelivery(data._id, restaurantLocation, deliveryLocation);
@@ -112,10 +106,19 @@ const ApprovedOrder = () => {
     }, []);
 
     useEffect(() => {
+        const sortedData = sortByDate(recordsData, 'createdAt', dateSortDirection);
+
+        // Then paginate
         const from = (page - 1) * pageSize;
         const to = from + pageSize;
-        setPaginatedData(recordsData.slice(from, to));
-    }, [page, pageSize, recordsData]);
+        setPaginatedData(sortedData.slice(from, to));
+    }, [page, pageSize, recordsData, dateSortDirection]);
+
+    const handleDateSort = (direction: SortDirection) => {
+        setDateSortDirection(direction);
+        // Reset to first page when sorting changes
+        setPage(1);
+    };
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -123,10 +126,6 @@ const ApprovedOrder = () => {
             month: 'short',
             day: 'numeric',
         });
-    };
-
-    const formatOrderId = (index: number) => {
-        return `#O${String(index + 1).padStart(3, '0')}`;
     };
 
     if (loading) return <Loader />;
@@ -185,7 +184,7 @@ const ApprovedOrder = () => {
                             },
                             {
                                 accessor: 'createdAt',
-                                title: 'Date',
+                                title: <DateSortingHeader title="Date" onSort={handleDateSort} currentDirection={dateSortDirection} />,
                                 render: ({ createdAt }) => <div>{formatDate(createdAt)}</div>,
                             },
                             {
@@ -203,38 +202,28 @@ const ApprovedOrder = () => {
                                                     showMessage('Status updated successfully!', 'success');
 
                                                     setRecordsData((prev) =>
-                                                        prev.map((order) => (order._id === _id ? { ...order, status: newStatus } : order))
-                                                        .filter((order) => order.status === 'confirmed')
+                                                        prev.map((order) => (order._id === _id ? { ...order, status: newStatus } : order)).filter((order) => order.status === 'confirmed')
                                                     );
 
                                                     if (newStatus === 'out_for_delivery') {
                                                         const data = await getOrderById(_id);
 
-                                                        const restaurantAddress = [
-                                                            data.restaurant?.address?.street,
-                                                            data.restaurant?.address?.city,
-                                                            data.restaurant?.address?.country
-                                                        ].filter(Boolean).join(', ');
+                                                        const restaurantAddress = [data.restaurant?.address?.street, data.restaurant?.address?.city, data.restaurant?.address?.country]
+                                                            .filter(Boolean)
+                                                            .join(', ');
 
-                                                        const customerAddress = [
-                                                            data.shippingAddress?.street,
-                                                            data.shippingAddress?.city,
-                                                            data.shippingAddress?.country
-                                                        ].filter(Boolean).join(', ');
+                                                        const customerAddress = [data.shippingAddress?.street, data.shippingAddress?.city, data.shippingAddress?.country].filter(Boolean).join(', ');
 
-                                                        const [restaurantCoords, customerCoords] = await Promise.all([
-                                                            geocodeAddress(restaurantAddress),
-                                                            geocodeAddress(customerAddress)
-                                                        ]);
+                                                        const [restaurantCoords, customerCoords] = await Promise.all([geocodeAddress(restaurantAddress), geocodeAddress(customerAddress)]);
 
                                                         const restaurantLocation = {
-                                                            type: "Point",
-                                                            coordinates: [restaurantCoords.lng, restaurantCoords.lat]
+                                                            type: 'Point',
+                                                            coordinates: [restaurantCoords.lng, restaurantCoords.lat],
                                                         };
 
                                                         const deliveryLocation = {
-                                                            type: "Point",
-                                                            coordinates: [customerCoords.lng, customerCoords.lat]
+                                                            type: 'Point',
+                                                            coordinates: [customerCoords.lng, customerCoords.lat],
                                                         };
 
                                                         await assignDriverToDelivery(data._id, restaurantLocation, deliveryLocation);

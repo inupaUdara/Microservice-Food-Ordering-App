@@ -5,6 +5,10 @@ import { setPageTitle } from '../../../../store/themeConfigSlice';
 import { getOrderByRestaurantId, updateOrderStatus } from '../../../../services/order/order';
 import Loader from '../../../Components/Loader';
 import Swal from 'sweetalert2';
+import DateSortingHeader from './components/DateSortingHeader';
+import { sortByDate } from './utils/date-sorting';
+
+type SortDirection = 'asc' | 'desc' | null;
 
 const UnApprovedOrder = () => {
     const dispatch = useDispatch();
@@ -20,6 +24,7 @@ const UnApprovedOrder = () => {
     const [paginatedData, setPaginatedData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [dateSortDirection, setDateSortDirection] = useState<SortDirection>(null);
 
     const showMessage = (msg = '', type = 'error') => {
         const toast: any = Swal.mixin({
@@ -56,10 +61,19 @@ const UnApprovedOrder = () => {
     }, []);
 
     useEffect(() => {
+        const sortedData = sortByDate(recordsData, 'createdAt', dateSortDirection);
+
+        // Then paginate
         const from = (page - 1) * pageSize;
         const to = from + pageSize;
-        setPaginatedData(recordsData.slice(from, to));
-    }, [page, pageSize, recordsData]);
+        setPaginatedData(sortedData.slice(from, to));
+    }, [page, pageSize, recordsData, dateSortDirection]);
+
+    const handleDateSort = (direction: SortDirection) => {
+        setDateSortDirection(direction);
+        // Reset to first page when sorting changes
+        setPage(1);
+    };
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
@@ -67,10 +81,6 @@ const UnApprovedOrder = () => {
             month: 'short',
             day: 'numeric',
         });
-    };
-
-    const formatOrderId = (index: number) => {
-        return `#O${String(index + 1).padStart(3, '0')}`;
     };
 
     if (loading) return <Loader />;
@@ -103,7 +113,7 @@ const UnApprovedOrder = () => {
                                     <div className="flex items-start gap-4 flex-wrap">
                                         {products.map((product: any, index: number) => (
                                             <div key={index} className="flex items-center gap-2">
-                                                <img src={product.image} alt={product.name} className="w-10 h-10 object-cover rounded" />
+                                                <img src={product.image || '/placeholder.svg'} alt={product.name} className="w-10 h-10 object-cover rounded" />
                                                 <div className="flex flex-col">
                                                     <span className="font-semibold">{product.name}</span>
                                                     <span className="text-xs text-gray-500">Qty: {product.quantity}</span>
@@ -129,7 +139,7 @@ const UnApprovedOrder = () => {
                             },
                             {
                                 accessor: 'createdAt',
-                                title: 'Date',
+                                title: <DateSortingHeader title="Date" onSort={handleDateSort} currentDirection={dateSortDirection} />,
                                 render: ({ createdAt }) => <div>{formatDate(createdAt)}</div>,
                             },
                             {
