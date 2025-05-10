@@ -1,6 +1,6 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState, useEffect } from 'react';
-import { X, DollarSign, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Check, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface CustomizationOption {
     label: string;
