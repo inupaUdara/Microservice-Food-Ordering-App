@@ -173,7 +173,7 @@ export function RestaurantsGrid({ restaurants, loading, error, onRestaurantClick
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Search restaurants, cuisine, location..."
+            placeholder="Search restaurants, location..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded-md border border-gray-300 py-2 pl-9 pr-4 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -188,8 +188,8 @@ export function RestaurantsGrid({ restaurants, loading, error, onRestaurantClick
             >
               <option value="rating">Highest Rated</option>
               <option value="name">Name (A-Z)</option>
-              <option value="priceAsc">Price (Low to High)</option>
-              <option value="priceDesc">Price (High to Low)</option>
+              {/* <option value="priceAsc">Price (Low to High)</option>
+              <option value="priceDesc">Price (High to Low)</option> */}
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
               <svg className="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">

@@ -127,7 +127,7 @@ export function RestaurantCard({ restaurant, onClick }: RestaurantCardProps) {
         {/* Footer with rating and price */}
         <div className="mt-3 flex items-center justify-between border-t pt-3">
           {renderRating()}
-          {renderPriceRange()}
+          {/* {renderPriceRange()} */}
         </div>
       </div>
     </div>
