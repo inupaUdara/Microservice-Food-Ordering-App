@@ -260,6 +260,61 @@ const getOutForDeliveryStats = async (restaurantId) => {
   };
 };
 
+const getItemsSoldByRestaurant = async (restaurantId) => {
+  if (!restaurantId || typeof restaurantId !== "string") {
+    throw new Error("Invalid restaurantId");
+  }
+
+  try {
+    const itemsSold = await Order.aggregate([
+      {
+        $match: {
+          restaurantId: restaurantId,
+          status: "out_for_delivery",
+        },
+      },
+
+      {
+        $unwind: "$products",
+      },
+
+      {
+        $group: {
+          _id: {
+            productId: "$products.productId",
+            name: "$products.name",
+          },
+          totalQuantity: { $sum: "$products.quantity" },
+        },
+      },
+
+      {
+        $project: {
+          _id: 0,
+          productId: "$_id.productId",
+          name: "$_id.name",
+          totalQuantity: 1,
+        },
+      },
+
+      {
+        $sort: {
+          totalQuantity: -1,
+          name: 1,
+        },
+      },
+    ]);
+
+    return itemsSold;
+  } catch (error) {
+    console.error(
+      "Error fetching items sold (out_for_delivery):",
+      error.message
+    );
+    throw new Error("Failed to fetch items sold for out_for_delivery orders");
+  }
+};
+
 const getOrderStats = async () => {
   const totalOrders = await Order.countDocuments();
 
@@ -273,9 +328,9 @@ const getOrderStats = async () => {
         _id: null,
         totalRevenue: { $sum: "$grandTotal" },
         totalDeliveryFee: { $sum: "$deliveryFee" },
-        avgOrderValue: { $avg: "$grandTotal" }
-      }
-    }
+        avgOrderValue: { $avg: "$grandTotal" },
+      },
+    },
   ]);
 
   const cancelledRevenueData = await Order.aggregate([
@@ -283,18 +338,18 @@ const getOrderStats = async () => {
     {
       $group: {
         _id: null,
-        cancelledRevenue: { $sum: "$grandTotal" }
-      }
-    }
+        cancelledRevenue: { $sum: "$grandTotal" },
+      },
+    },
   ]);
 
   const statusCounts = await Order.aggregate([
     {
       $group: {
         _id: "$status",
-        count: { $sum: 1 }
-      }
-    }
+        count: { $sum: 1 },
+      },
+    },
   ]);
 
   const todayStats = await Order.aggregate([
@@ -303,9 +358,9 @@ const getOrderStats = async () => {
       $group: {
         _id: null,
         ordersToday: { $sum: 1 },
-        revenueToday: { $sum: "$grandTotal" }
-      }
-    }
+        revenueToday: { $sum: "$grandTotal" },
+      },
+    },
   ]);
 
   const revenueData = totalRevenueData[0] || {};
@@ -323,7 +378,7 @@ const getOrderStats = async () => {
     statusBreakdown: statusCounts.reduce((acc, curr) => {
       acc[curr._id] = curr.count;
       return acc;
-    }, {})
+    }, {}),
   };
 };
 
@@ -335,5 +390,6 @@ module.exports = {
   updateOrderStatus,
   cancelOrder,
   getOutForDeliveryStats,
+  getItemsSoldByRestaurant,
   getOrderStats,
 };

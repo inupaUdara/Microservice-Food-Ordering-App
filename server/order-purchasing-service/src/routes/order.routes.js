@@ -1,7 +1,9 @@
 const express = require("express");
 
-
-const {authenticateToken, authorizeRoles } = require("../middlewares/auth.middleware.js");
+const {
+  authenticateToken,
+  authorizeRoles,
+} = require("../middlewares/auth.middleware.js");
 const {
   createOrder,
   getOrderById,
@@ -11,9 +13,9 @@ const {
   getRestaurantOrders,
   getGeoCode,
   getOutForDeliveryStats,
+  getItemsSoldByRestaurant,
   fetchOrderStats,
 } = require("../controllers/order.controller.js");
-
 
 const router = express.Router();
 
@@ -26,7 +28,12 @@ router.get(
   getRestaurantOrders
 );
 router.get("/geocode", authenticateToken, getGeoCode);
-router.get("/stats", authenticateToken, authorizeRoles("admin"), fetchOrderStats);
+router.get(
+  "/stats",
+  authenticateToken,
+  authorizeRoles("admin"),
+  fetchOrderStats
+);
 router.get("/:orderId", authenticateToken, getOrderById);
 router.patch("/:orderId", updateOrderStatus);
 router.delete("/:orderId", authenticateToken, cancelOrder);
@@ -35,6 +42,12 @@ router.get(
   authenticateToken,
   authorizeRoles("restaurant-admin"),
   getOutForDeliveryStats
+);
+router.get(
+  "/restaurant/items-sold-out-for-delivery",
+  authenticateToken,
+  authorizeRoles("restaurant-admin"),
+  getItemsSoldByRestaurant
 );
 
 module.exports = router;
