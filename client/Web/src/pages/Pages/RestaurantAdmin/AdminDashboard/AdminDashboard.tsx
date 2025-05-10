@@ -1,213 +1,149 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import ReactApexChart from 'react-apexcharts';
 import { setPageTitle } from '../../../../store/themeConfigSlice';
-import { IRootState } from '../../../../store';
-import Dropdown from '../../../../components/Dropdown';
-import IconHorizontalDots from '../../../../components/Icon/IconHorizontalDots';
+import type { IRootState } from '../../../../store';
+import { DollarSign, Truck, RefreshCw, ChevronUp, Filter } from 'lucide-react';
+import { getOutForDeliveryStats } from '../../../../services/order/order';
+
+import DeliveryAnalyticsChart from './components/DeliveryAnalyticsChart';
+import MonthlyPerformance from './components/MonthlyPerformance';
 
 function AdminDashboard() {
     const dispatch = useDispatch();
+
     useEffect(() => {
         dispatch(setPageTitle('Dashboard'));
-    });
+    }, [dispatch]);
+
     const isDark = useSelector((state: IRootState) => state.themeConfig.theme === 'dark' || state.themeConfig.isDarkMode);
     const isRtl = useSelector((state: IRootState) => state.themeConfig.rtlClass) === 'rtl' ? true : false;
 
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [deliveryStats, setDeliveryStats] = useState<any>({
+        totalOrders: 0,
+        totalAmount: 0,
+        monthlyStats: [],
+    });
+    const [timeframe, setTimeframe] = useState('yearly');
 
-    // Revenue Chart
-    const revenueChart: any = {
-        series: [
-            {
-                name: 'Income',
-                data: [16800, 16800, 15500, 17800, 15500, 17000, 19000, 16000, 15000, 17000, 14000, 17000],
-            },
-        ],
-        options: {
-            chart: {
-                height: 325,
-                type: 'area',
-                fontFamily: 'Nunito, sans-serif',
-                zoom: {
-                    enabled: false,
-                },
-                toolbar: {
-                    show: false,
-                },
-            },
-            dataLabels: {
-                enabled: false,
-            },
-            stroke: {
-                show: true,
-                curve: 'smooth',
-                width: 2,
-                lineCap: 'square',
-            },
-            dropShadow: {
-                enabled: true,
-                opacity: 0.2,
-                blur: 10,
-                left: -7,
-                top: 22,
-            },
-            colors: isDark ? ['#2196F3'] : ['#1B55E2'],
-            markers: {
-                discrete: [
-                    {
-                        seriesIndex: 0,
-                        dataPointIndex: 6,
-                        fillColor: '#1B55E2',
-                        strokeColor: 'transparent',
-                        size: 7,
-                    },
-                ],
-            },
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-            xaxis: {
-                axisBorder: {
-                    show: false,
-                },
-                axisTicks: {
-                    show: false,
-                },
-                crosshairs: {
-                    show: true,
-                },
-                labels: {
-                    offsetX: isRtl ? 2 : 0,
-                    offsetY: 5,
-                    style: {
-                        fontSize: '12px',
-                        cssClass: 'apexcharts-xaxis-title',
-                    },
-                },
-            },
-            yaxis: {
-                tickAmount: 7,
-                labels: {
-                    formatter: (value: number) => {
-                        return value / 1000 + 'K';
-                    },
-                    offsetX: isRtl ? -30 : -10,
-                    offsetY: 0,
-                    style: {
-                        fontSize: '12px',
-                        cssClass: 'apexcharts-yaxis-title',
-                    },
-                },
-                opposite: isRtl ? true : false,
-            },
-            grid: {
-                borderColor: isDark ? '#191E3A' : '#E0E6ED',
-                strokeDashArray: 5,
-                xaxis: {
-                    lines: {
-                        show: true,
-                    },
-                },
-                yaxis: {
-                    lines: {
-                        show: false,
-                    },
-                },
-                padding: {
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                    left: 0,
-                },
-            },
-            legend: {
-                position: 'top',
-                horizontalAlign: 'right',
-                fontSize: '16px',
-                markers: {
-                    width: 10,
-                    height: 10,
-                    offsetX: -2,
-                },
-                itemMargin: {
-                    horizontal: 10,
-                    vertical: 5,
-                },
-            },
-            tooltip: {
-                marker: {
-                    show: true,
-                },
-                x: {
-                    show: false,
-                },
-            },
-            fill: {
-                type: 'gradient',
-                gradient: {
-                    shadeIntensity: 1,
-                    inverseColors: !1,
-                    opacityFrom: isDark ? 0.19 : 0.28,
-                    opacityTo: 0.05,
-                    stops: isDark ? [100, 100] : [45, 100],
-                },
-            },
-        },
-    };
+    useEffect(() => {
+        const fetchDeliveryStats = async () => {
+            try {
+                setLoading(true);
+                const data = await getOutForDeliveryStats();
+                setDeliveryStats(data);
+                setError(null);
+            } catch (err: any) {
+                setError(err.message || 'Failed to fetch delivery statistics');
+                console.error('Error fetching delivery stats:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDeliveryStats();
+    }, []);
+
+    // Calculate stats for cards and components
+    const avgOrdersPerMonth = deliveryStats.totalOrders / 12;
+    const avgRevenuePerMonth = deliveryStats.totalAmount / 12;
+
+    // Find the month with highest orders and revenue
+    const highestOrderMonth = deliveryStats.monthlyStats?.reduce((prev: any, current: any) => (prev.orders > current.orders ? prev : current), { month: 'N/A', orders: 0 });
+
+    const highestRevenueMonth = deliveryStats.monthlyStats?.reduce((prev: any, current: any) => (prev.amount > current.amount ? prev : current), { month: 'N/A', amount: 0 });
+
+    // Currency symbol used throughout the dashboard
+    const currencySymbol = 'LKR';
 
     return (
-        <div>
-            <ul className="flex space-x-2 rtl:space-x-reverse">
-                <li>
-                    <Link to="/" className="text-primary hover:underline">
-                        Dashboard
-                    </Link>
-                </li>
-                <li className="before:content-['/'] ltr:before:mr-2 rtl:before:ml-2">
-                    <span>Sales</span>
-                </li>
-            </ul>
+        <div className="p-6 space-y-6">
+            {/* Breadcrumb */}
+            <div className="flex justify-between items-center flex-wrap gap-4">
+                <ul className="flex space-x-2 rtl:space-x-reverse text-sm">
+                    <li>
+                        <Link to="/" className="text-indigo-600 hover:underline">
+                            Dashboard
+                        </Link>
+                    </li>
+                    <li className="before:content-['/'] ltr:before:mr-2 rtl:before:ml-2 text-gray-500 dark:text-gray-400">
+                        <span>Delivery Analytics</span>
+                    </li>
+                </ul>
 
-            <div className="pt-5">
-                <div className="panel h-full">
-                    <div className="flex items-center justify-between dark:text-white-light mb-5">
-                        <h5 className="font-semibold text-lg">Total Amount</h5>
-                        <div className="dropdown">
-                            <Dropdown
-                                offset={[0, 1]}
-                                placement={`${isRtl ? 'bottom-start' : 'bottom-end'}`}
-                                button={<IconHorizontalDots className="text-black/70 dark:text-white/70 hover:!text-primary" />}
-                            >
-                                <ul>
-                                    <li>
-                                        <button type="button">Weekly</button>
-                                    </li>
-                                    <li>
-                                        <button type="button">Monthly</button>
-                                    </li>
-                                    <li>
-                                        <button type="button">Yearly</button>
-                                    </li>
-                                </ul>
-                            </Dropdown>
-                        </div>
-                    </div>
-                    <p className="text-lg dark:text-white-light/90">
-                        Total Amount <span className="text-primary ml-2">$90</span>
-                    </p>
-                    <div className="relative">
-                        <div className="bg-white dark:bg-black rounded-lg overflow-hidden">
-                            {loading ? (
-                                <div className="min-h-[325px] grid place-content-center bg-white-light/30 dark:bg-dark dark:bg-opacity-[0.08]">
-                                    <span className="animate-spin border-2 border-black dark:border-white !border-l-transparent rounded-full w-5 h-5 inline-flex"></span>
-                                </div>
-                            ) : (
-                                <ReactApexChart series={revenueChart.series} options={revenueChart.options} type="area" height={325} />
-                            )}
-                        </div>
-                    </div>
+                <div className="flex items-center space-x-3">
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                    >
+                        <RefreshCw className="w-4 h-4 mr-1" />
+                        <span>Refresh</span>
+                    </button>
                 </div>
             </div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Total Delivery Orders */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-all hover:shadow-md">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Delivery Orders</h3>
+                        <span className="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                            <Truck className="w-5 h-5" />
+                        </span>
+                    </div>
+                    <div className="flex items-baseline">
+                        <span className="text-2xl font-bold text-gray-900 dark:text-white">{loading ? '...' : deliveryStats.totalOrders.toLocaleString()}</span>
+                        <span className="ml-2 text-sm text-green-600 dark:text-green-400 flex items-center">
+                            <ChevronUp className="w-4 h-4" />
+                            <span>12%</span>
+                        </span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Compared to previous period</p>
+                </div>
+
+                {/* Total Revenue */}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-all hover:shadow-md">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Delivery Revenue</h3>
+                        <span className="p-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                            <DollarSign className="w-5 h-5" />
+                        </span>
+                    </div>
+                    <div className="flex items-baseline">
+                        <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                            {loading
+                                ? '...'
+                                : `${currencySymbol}${deliveryStats.totalAmount.toLocaleString(undefined, {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                  })}`}
+                        </span>
+                        <span className="ml-2 text-sm text-green-600 dark:text-green-400 flex items-center">
+                            <ChevronUp className="w-4 h-4" />
+                            <span>8.2%</span>
+                        </span>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Compared to previous period</p>
+                </div>
+            </div>
+
+            {/* Delivery Analytics Chart Component */}
+            <DeliveryAnalyticsChart loading={loading} error={error} monthlyStats={deliveryStats.monthlyStats || []} isDark={isDark} isRtl={isRtl} currencySymbol={currencySymbol} />
+
+            {/* Monthly Performance Component */}
+            <MonthlyPerformance
+                loading={loading}
+                highestOrderMonth={highestOrderMonth}
+                highestRevenueMonth={highestRevenueMonth}
+                avgOrdersPerMonth={avgOrdersPerMonth}
+                avgRevenuePerMonth={avgRevenuePerMonth}
+                currencySymbol={currencySymbol}
+            />
         </div>
     );
 }
