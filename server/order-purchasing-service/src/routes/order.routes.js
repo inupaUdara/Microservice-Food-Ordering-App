@@ -11,6 +11,7 @@ const {
   getRestaurantOrders,
   getGeoCode,
   getOutForDeliveryStats,
+  fetchOrderStats,
 } = require("../controllers/order.controller.js");
 
 
@@ -25,6 +26,7 @@ router.get(
   getRestaurantOrders
 );
 router.get("/geocode", authenticateToken, getGeoCode);
+router.get("/stats", authenticateToken, authorizeRoles("admin"), fetchOrderStats);
 router.get("/:orderId", authenticateToken, getOrderById);
 router.patch("/:orderId", updateOrderStatus);
 router.delete("/:orderId", authenticateToken, cancelOrder);

@@ -255,6 +255,73 @@ const getOutForDeliveryStats = async (restaurantId) => {
   };
 };
 
+const getOrderStats = async () => {
+  const totalOrders = await Order.countDocuments();
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const totalRevenueData = await Order.aggregate([
+    { $match: { status: { $ne: "cancelled" } } },
+    {
+      $group: {
+        _id: null,
+        totalRevenue: { $sum: "$grandTotal" },
+        totalDeliveryFee: { $sum: "$deliveryFee" },
+        avgOrderValue: { $avg: "$grandTotal" }
+      }
+    }
+  ]);
+
+  const cancelledRevenueData = await Order.aggregate([
+    { $match: { status: "cancelled" } },
+    {
+      $group: {
+        _id: null,
+        cancelledRevenue: { $sum: "$grandTotal" }
+      }
+    }
+  ]);
+
+  const statusCounts = await Order.aggregate([
+    {
+      $group: {
+        _id: "$status",
+        count: { $sum: 1 }
+      }
+    }
+  ]);
+
+  const todayStats = await Order.aggregate([
+    { $match: { createdAt: { $gte: today }, status: { $ne: "cancelled" } } },
+    {
+      $group: {
+        _id: null,
+        ordersToday: { $sum: 1 },
+        revenueToday: { $sum: "$grandTotal" }
+      }
+    }
+  ]);
+
+  const revenueData = totalRevenueData[0] || {};
+  const cancelledRevenue = cancelledRevenueData[0]?.cancelledRevenue || 0;
+  const todayData = todayStats[0] || {};
+
+  return {
+    totalOrders,
+    totalRevenue: revenueData.totalRevenue || 0,
+    totalDeliveryFees: revenueData.totalDeliveryFee || 0,
+    averageOrderValue: revenueData.avgOrderValue || 0,
+    cancelledRevenue,
+    ordersToday: todayData.ordersToday || 0,
+    revenueToday: todayData.revenueToday || 0,
+    statusBreakdown: statusCounts.reduce((acc, curr) => {
+      acc[curr._id] = curr.count;
+      return acc;
+    }, {})
+  };
+};
+
 module.exports = {
   createOrder,
   getRestaurantOrders,
@@ -263,4 +330,5 @@ module.exports = {
   updateOrderStatus,
   cancelOrder,
   getOutForDeliveryStats,
+  getOrderStats,
 };
