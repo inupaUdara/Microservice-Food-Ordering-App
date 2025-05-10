@@ -1,7 +1,28 @@
 const { sendOrderConfirmation, sendOrderCompleteNotification, sendOrderCancellationNotification } = require('./orderNotification.controller');
 const { sendRegistrationConfirmation, passwordReset } = require('./userNotification.controller');
-const { sendRestaurantRegistrationNotification } = require('./restaurantNotification.controller');
-const { broadcastOrderAssignment } = require('../websocket/wsServer'); // Ensure this import is here
+const { sendRestaurantRegistrationNotification, sendOrderReceivedNotification  } = require('./restaurantNotification.controller');
+const { broadcastOrderAssignment, broadcastOrderReceived  } = require('../websocket/wsServer'); // Ensure this import is here
+
+
+
+
+const notifyOrderReceived = async (req, res) => {
+  const { restaurantEmail, restaurantPhone, restaurantName, orderDetails } = req.body;
+
+  try {
+    // Send SMS + Email (optional)
+    await sendOrderReceivedNotification(restaurantEmail, restaurantPhone, restaurantName, orderDetails);
+
+    // Real-time push via WebSocket
+    broadcastOrderReceived(orderDetails);
+
+    return res.status(200).json({ message: 'Order received notification sent to restaurant.' });
+  } catch (error) {
+    console.error('Error notifying restaurant of order received:', error);
+    return res.status(500).json({ message: 'Failed to notify restaurant.' });
+  }
+};
+
 
 const confirmOrder = async (req, res) => {
   const { customerEmail, customerPhone, orderDetails } = req.body;
@@ -109,4 +130,4 @@ const confirmRestaurantRegistration = async (req, res) => {
 };
 
 
-module.exports = { confirmOrder, confirmOrderCompletion, confirmRegistration, cancelOrder, confirmRestaurantRegistration, resetPasswordToken };
+module.exports = { confirmOrder, confirmOrderCompletion, confirmRegistration, cancelOrder, confirmRestaurantRegistration, resetPasswordToken, notifyOrderReceived };

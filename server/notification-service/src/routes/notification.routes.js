@@ -1,5 +1,5 @@
 const express = require('express');
-const { confirmOrder, confirmRegistration, confirmOrderCompletion, cancelOrder, confirmRestaurantRegistration, resetPasswordToken } = require('../controllers/confirmation.controller');
+const { confirmOrder, confirmRegistration, confirmOrderCompletion, cancelOrder, confirmRestaurantRegistration, resetPasswordToken, notifyOrderReceived } = require('../controllers/confirmation.controller');
 const router = express.Router();
 
 router.post('/confirm', confirmOrder);
@@ -8,5 +8,7 @@ router.post('/register', confirmRegistration);
 router.post('/reset-password', resetPasswordToken);
 router.post('/cancel', cancelOrder);
 router.post('/register-restaurant', confirmRestaurantRegistration);
+router.post('/order-received', notifyOrderReceived);
+
 
 module.exports = router;

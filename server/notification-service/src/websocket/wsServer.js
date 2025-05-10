@@ -56,4 +56,19 @@ const broadcastOrderCancellation = (orderDetails) => {
   });
 };
 
-module.exports = { broadcastOrderAssignment, broadcastOrderCompletion, broadcastOrderCancellation };
+
+const broadcastOrderReceived = (orderDetails) => {
+  const payload = JSON.stringify({
+    type: 'order_received',
+    data: orderDetails
+  });
+
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(payload);
+    }
+  });
+};
+
+
+module.exports = { broadcastOrderAssignment, broadcastOrderCompletion, broadcastOrderCancellation, broadcastOrderReceived };

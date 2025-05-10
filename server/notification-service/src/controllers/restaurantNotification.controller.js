@@ -22,4 +22,26 @@ const sendRestaurantRegistrationNotification = async (restaurantEmail, restauran
   }
 };
 
-module.exports = { sendRestaurantRegistrationNotification };
+
+const sendOrderReceivedNotification = async (restaurantEmail, restaurantPhone, restaurantName, orderDetails) => {
+  const emailData = {
+    restaurantName,
+    orderId: orderDetails.orderId,
+    orderItems: orderDetails.items.join(', ')
+  };
+
+  const smsText = `New order received: #${orderDetails.orderId} for ${orderDetails.items.join(', ')}. Please confirm.`;
+
+  try {
+    await sendSMS(restaurantPhone, smsText);
+    await sendEmail(restaurantEmail, 'New Order Received', 'restaurant-order-received', emailData);
+
+    return { success: true, message: 'Order received notification sent successfully' };
+  } catch (error) {
+    console.error('Error sending order received notification:', error);
+    return { success: false, message: 'Failed to send order received notification' };
+  }
+};
+
+
+module.exports = { sendRestaurantRegistrationNotification, sendOrderReceivedNotification };
