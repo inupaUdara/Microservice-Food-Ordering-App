@@ -1,8 +1,6 @@
-// src/controllers/orderNotification.controller.js
-
 const { sendSMS } = require('../services/sms.service');
 const { sendEmail } = require('../services/email.service');
-const { broadcastOrderCancellation } = require('../websocket/wsServer');  // <-- Correct import path
+const { broadcastOrderCancellation, broadcastOrderCompletion  } = require('../websocket/wsServer'); 
 
 const sendOrderConfirmation = async (customerEmail, customerPhone, orderDetails) => {
   const items = Array.isArray(orderDetails.items) ? orderDetails.items : [];
@@ -41,7 +39,7 @@ const sendOrderCompleteNotification = async (customerEmail, customerPhone, order
     await sendEmail(customerEmail, 'Order Delivered Successfully', 'order-completion', emailData);
 
     // Broadcast real-time notification to delivery personnel (WebSocket)
-    broadcastOrderCompletion(orderDetails);  // <-- This will now work
+    broadcastOrderCompletion(orderDetails);  
 
     return { success: true, message: 'Order completion notifications sent successfully' };
   } catch (error) {

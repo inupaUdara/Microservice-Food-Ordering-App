@@ -1,5 +1,3 @@
-// src/controllers/restaurantNotification.controller.js
-
 const { sendSMS } = require('../services/sms.service');
 const { sendEmail } = require('../services/email.service');
 

@@ -57,18 +57,21 @@ const broadcastOrderCancellation = (orderDetails) => {
 };
 
 
-const broadcastOrderReceived = (orderDetails) => {
+const broadcastOrderReceived = (orderDetails, recipientEmail) => {
   const payload = JSON.stringify({
     type: 'order_received',
+    recipient: recipientEmail,  
     data: orderDetails
   });
 
+  console.log('Broadcasting order_received to:', recipientEmail);
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(payload);
     }
   });
 };
+
 
 
 module.exports = { broadcastOrderAssignment, broadcastOrderCompletion, broadcastOrderCancellation, broadcastOrderReceived };

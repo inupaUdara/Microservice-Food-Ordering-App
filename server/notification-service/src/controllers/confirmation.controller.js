@@ -14,7 +14,8 @@ const notifyOrderReceived = async (req, res) => {
     await sendOrderReceivedNotification(restaurantEmail, restaurantPhone, restaurantName, orderDetails);
 
     // Real-time push via WebSocket
-    broadcastOrderReceived(orderDetails);
+    broadcastOrderReceived(orderDetails, restaurantEmail);
+
 
     return res.status(200).json({ message: 'Order received notification sent to restaurant.' });
   } catch (error) {
