@@ -118,7 +118,7 @@ const MenuModal = ({ isOpen, onClose, menuItem }: MenuDetailsModalProps) => {
                                             {/* Price and Availability */}
                                             <div className="flex items-center mt-2 space-x-4">
                                                 <span className="text-xl font-bold text-white flex items-center">
-                                                    <DollarSign className="h-5 w-5 mr-0.5 text-white/80" />
+                                                    <h1 className="h-5 w-5 mr-0.5 text-white/80">LKR.</h1>
                                                     {menuItem.price.toFixed(2)}
                                                 </span>
 
@@ -153,7 +153,8 @@ const MenuModal = ({ isOpen, onClose, menuItem }: MenuDetailsModalProps) => {
 
                                         <div className="flex items-center mt-3 space-x-4">
                                             <span className="text-xl font-bold text-white flex items-center">
-                                                <DollarSign className="h-5 w-5 mr-0.5 text-white/80" />
+                                                <h1 className="h-5 w-5 mr-0.5 text-white/80">LKR.</h1>
+
                                                 {menuItem.price.toFixed(2)}
                                             </span>
 

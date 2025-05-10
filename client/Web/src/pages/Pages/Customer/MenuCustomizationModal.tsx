@@ -210,7 +210,7 @@ const MenuCustomizationModal = ({ isOpen, onClose, menuItem, onCustomizationDone
                                                                 >
                                                                     {customization.options.map((option, optIndex) => (
                                                                         <option key={optIndex} value={option.label}>
-                                                                            {option.label} {option.price > 0 ? `(+$${option.price.toFixed(2)})` : ''}
+                                                                            {option.label} {option.price > 0 ? `(+LKR.${option.price.toFixed(2)})` : ''}
                                                                         </option>
                                                                     ))}
                                                                 </select>
@@ -235,7 +235,7 @@ const MenuCustomizationModal = ({ isOpen, onClose, menuItem, onCustomizationDone
                                                                                 <span className="ml-2 text-gray-700 dark:text-gray-300">{option.label}</span>
                                                                             </div>
                                                                             {option.price > 0 && (
-                                                                                <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">+${option.price.toFixed(2)}</span>
+                                                                                <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">+LKR.{option.price.toFixed(2)}</span>
                                                                             )}
                                                                         </label>
                                                                     ))}
@@ -260,7 +260,7 @@ const MenuCustomizationModal = ({ isOpen, onClose, menuItem, onCustomizationDone
                                                                                 <span className="ml-2 text-gray-700 dark:text-gray-300">{option.label}</span>
                                                                             </div>
                                                                             {option.price > 0 && (
-                                                                                <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">+${option.price.toFixed(2)}</span>
+                                                                                <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">+LKR.{option.price.toFixed(2)}</span>
                                                                             )}
                                                                         </label>
                                                                     ))}
@@ -293,7 +293,6 @@ const MenuCustomizationModal = ({ isOpen, onClose, menuItem, onCustomizationDone
                                             </div>
                                         </div>
                                         <div className="flex items-center">
-                                            <DollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                                             <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{totalPrice.toFixed(2)}</span>
                                         </div>
                                     </div>
